@@ -4,6 +4,7 @@
 # layout: home
 title: My CV
 author: Karl Jan Clinckspoor
+layout: default
 ---
 
 Hi, I'm Karl, a PhD in Physical Chemistry with emphasis in Colloidal Chemistry.
