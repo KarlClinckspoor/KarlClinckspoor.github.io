@@ -21,13 +21,12 @@ recovery.
 
 Publications: [Link](publications.html)
 
-[Test post]({% post_url 2020-11-14-First-blog-post %})
 
-List of blog posts:
+<!-- List of blog posts:
 <ul>
   {% for post in site.posts %}
     <li>
       <a href="{{ post.url }}">{{ post.title }}</a>
     </li>
   {% endfor %}
-</ul>
+</ul> -->
