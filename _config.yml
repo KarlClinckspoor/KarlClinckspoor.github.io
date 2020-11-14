@@ -5,7 +5,7 @@
 # yourself editing this file very often, consider using Jekyll's data files
 # feature for the data you need to update frequently.
 #
-# For technical reasons, this file is *NOT* reloaded automatically when you use
+# For technical reasols, this file is *NOT* reloaded automatically when you use
 # 'bundle exec jekyll serve'. If you change this file, please restart the server process.
 
 # Site settings
@@ -17,8 +17,8 @@ title: Karl Jan Clinckspoor
 email: test [at] place [dot] com
 description: >- # this means to ignore newlines until "baseurl:"
   This page is my personal CV
-baseurl: "" # the subpath of your site, e.g. /blog
-url: "" # the base hostname & protocol for your site, e.g. http://example.com
+# baseurl: "" # the subpath of your site, e.g. /blog
+# url: "" # the base hostname & protocol for your site, e.g. http://example.com
 # twitter_username: jekyllrb
 github_username:  KarlClinckspoor
 
