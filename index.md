@@ -1,7 +1,4 @@
 ---
-# Feel free to add content and custom Front Matter to this file.
-# To modify the layout, see https://jekyllrb.com/docs/themes/#overriding-theme-defaults
-# layout: home
 title: My CV
 author: Karl Jan Clinckspoor
 layout: default
@@ -32,6 +29,13 @@ Hi, I'm Karl, a PhD in Physical Chemistry with emphasis in Colloidal Chemistry.
 I finished my PhD in 2019 and am currently working as a research chemist at
 LABORE, a group dedicated to studying oil reservoirs, since June/2019.
 
+## Summary
+
+* [List of publications together with some comments on them](publications.html)
+* [Evolution of a Thesis Film](evol_thesis.html)
+* [Education](education.html)
+* [Other Projects](other_projects.html)
+
 ## Current work and interests
 
 My current role is project leader, where I am developing solutions without
@@ -60,8 +64,7 @@ versatile in the group. For example, with my data analysis and general
 programming skills, I have automated several data acquisition and analysis steps
 of the NMR, allowing us to perform previously impossible tests. This, allied
 with my chemical knowledge, made it possible to gain additional insights into
-our problems. So far, both projects are still active, so I cannot give more
-detailed information.
+our problems.
 
 In the future, I wish to continue being a learner and also become a
 teacher/mentor to others, share my knowledge, and build new, interesting, and
