@@ -144,7 +144,7 @@ has less than 95 "plin plons".
 And that's what inspired me to do this, and roughly how I did it. [You can check
 out the code here](https://github.com/KarlClinckspoor/EvolutionThesis).
 
-## Slow version (Gymnopedie No.1 Erik Satie)
+### Slow version (Gymnopedie No.1 Erik Satie)
 
 <iframe width="560" height="315" src="https://www.youtube.com/embed/o8FFMAszz5s"
  frameborder="0" allow="accelerometer; autoplay; clipboard-write; encrypted-media
