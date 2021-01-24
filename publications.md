@@ -1,6 +1,7 @@
 ---
 # layout: page
 title: "Publications"
+author: Karl Jan Clinckspoor
 permalink: /publications
 ---
 

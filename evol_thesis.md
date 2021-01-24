@@ -2,6 +2,7 @@
 title: Evolution of a Thesis
 author: Karl Jan Clinckspoor
 layout: default
+permalink: /evol_thesis
 ---
 
 ## Summary
