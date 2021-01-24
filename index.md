@@ -38,19 +38,17 @@ LABORE, a group dedicated to studying oil reservoirs, since June/2019.
 
 ## Current work and interests
 
-My current role is project leader, where I am developing solutions without
-solids to combat lost circulation in fractured oil reservoirs, financed by
-PETROBRAS. My tasks are varied, from literature review, planning and performing
-experiments, mentoring students, and also more administrative tasks, such as
-procuring reagents and equipment.
+My current role is main researcher in a project where I am developing solutions
+to combat lost circulation, financed by PETROBRAS. My tasks are varied, from
+literature review, planning and performing experiments, mentoring students, and
+also more administrative tasks, such as procuring reagents and equipment.
 
-I am also collaborating on a project focused on using biopolymers for enhanced
-oil recovery, financed by Shell. My main responsibility is consulting on the
-chemical aspects of the system, and implementing NMR relaxometry to study
-wettability.
+I am also collaborating on a project focused on using biopolymers, financed by
+Shell. My main responsibility is consulting on the chemical aspects of the
+system, and implementing NMR relaxometry to study wettability.
 
-I am interested in using my knowledge in colloidal chemistry, to solve
-real-world problems and propose useful applications.
+I am interested in using my knowledge in colloidal chemistry to solve
+real-world problems and create useful applications.
 
 ## Professional achievements
 
