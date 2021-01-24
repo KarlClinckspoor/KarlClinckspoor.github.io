@@ -14,10 +14,10 @@ layout: default
 
 ## Short story
 
-I had a hunch it would be cool to watch my thesis evolving, so I used git to
-version control the LaTeX source files, then used Python with mainly
-`matplotlib`, `numpy` and `wordcloud`. The source code can be found
-[here](https://github.com/KarlClinckspoor/EvolutionThesis).
+I used git to version control the LaTeX source files, of my thesis, and had a
+hunch it would be cool to see it evolve. Then used Python with mainly
+`matplotlib`, `numpy` and `wordcloud` to create the frames. The source code can
+be found [here](https://github.com/KarlClinckspoor/EvolutionThesis).
 
 It first calculates the stats for each commit (stage), then compiles the `pdf`,
 arranges the pages into a grid, generates a workcloud for that commit and
