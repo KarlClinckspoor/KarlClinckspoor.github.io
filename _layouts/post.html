@@ -1,8 +1,14 @@
 ---
 layout: default
 ---
+<h1> {{page.description}}</h1>
+<div style="padding-bottom: 5px; font-size: small;"> {{page.date | date: "%-d %B %Y" }}</div>
+
 {{ content }}
-<p> {{page.date}} - Written by {{page.author}}</p>
+
+<p> Written by {{page.author}}</p>
+{% if page.tags %}
 {% for tag in page.tags %}
-<span> {{tag}};</span>
+    <em> {{tag}};</em>
 {% endfor %}
+{% endif %}
