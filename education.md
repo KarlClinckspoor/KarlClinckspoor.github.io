@@ -24,7 +24,7 @@ bond or ortho group, barely even formed micelles. To study these systems, I
 employed a great deal of rheology, and also isothermal titration calorimetry.
 
 A copy of my Master's dissertation can be found
-[here](assets/Clinckspoor_KJ_mestrado.pdf) (in portuguese). One aspect of my
+[here](/assets/pdfs/Clinckspoor_KJ_mestrado.pdf) (in portuguese). One aspect of my
 work has been developed in an article, check it out
 [here](https://link.springer.com/article/10.1007/s00396-015-3672-y). We also
 described the calorimetric profile of wormlike micelles in another article,
@@ -68,7 +68,7 @@ reproducibility you gain. My thesis reflects this, and I show many code snippets
 throughout it. I also gave a short class on using Python for data analysis, and
 the content can be found [on Github](https://github.com/KarlClinckspoor/CursoPython)
 
-A copy of my thesis can be found [here](assets/Clinckspoor_KJ_doutorado.pdf). I
+A copy of my thesis can be found [here](/assets/pdfs/Clinckspoor_KJ_doutorado.pdf). I
 decided to write it in Portuguese, sacrificing international appeal, because I
 wanted my work to be more approachable to Brazilian students, who often struggle
 with texts in English. If you want a condensed version in English, check out my
