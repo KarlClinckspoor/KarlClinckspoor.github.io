@@ -1,8 +1,9 @@
 ---
 layout: post
-title: wsl and manimgl
+title: WSL and ManimGL
 description: How to configure WSL to work with manimGL
 author: Karl Jan Clinckspoor
+date: 12 March 2021
 tags:
     - wsl
     - linux
