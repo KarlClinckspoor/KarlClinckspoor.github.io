@@ -1,0 +1,31 @@
+---
+layout: default
+permalink: /posts
+title: Blog posts
+---
+
+<h2 id="posts">Posts</h2>
+<ul id="post_list">
+    {% for post in site.posts %}
+    <li> {{post.date | date: "%d-%m-%Y"}}: <a href="{{post.url}}">{{post.title}}</a>.
+        Tags:
+        {% assign length = post.tags.size %}
+        {% assign counter = length | plus:-2 %}
+        {% assign last = length | plus:-1 %}
+        {% for i in (0..counter) %}
+            <em>{{post.tags[i]}},</em>
+        {% endfor %}
+        <em> {{post.tags[last]}} </em>
+    </li>
+    {% endfor %}
+</ul>
+
+<h2 id="tags">Tags</h2>
+{% for tag in site.tags %}
+    <h3 id="tag">{{ tag[0] }}</h3>
+    {% for post in tag[1] %}
+        <ul>
+            <li>{{post.date | date: "%d-%m-%Y"}}: <a href="{{post.url}}">{{post.title}}</a> </li>
+        </ul>
+    {% endfor %}
+{% endfor %}
