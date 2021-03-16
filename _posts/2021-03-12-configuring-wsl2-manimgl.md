@@ -60,11 +60,10 @@ through WSL is to use a X-Server on Windows and connect it to WSL. I tried this 
 VcXsrv, but I found it to be clunky and unintuitive. I found that some people recommended 
 MobaXterm, and decided to give that a go.
 
-Assuming you have `manimgl` installed, and (MobaXTerm)[https://mobaxterm.mobatek.
-net/download-home-edition.html] installed and running (including the X-server), you will need to 
+Assuming you have `manimgl` installed, and (MobaXTerm)[https://mobaxterm.mobatek.net/download-home-edition.html] 
+installed and running (including the X-server), you will need to 
 configure your `DISPLAY` variable. To do this, on your `.bashrc` or `.zshrc`, add the following 
-line ((thanks to nick janetakis)[https://nickjanetakis.
-com/blog/using-wsl-and-mobaxterm-to-create-a-linux-dev-environment-on-windows]):
+line ((thanks to nick janetakis)[https://nickjanetakis.com/blog/using-wsl-and-mobaxterm-to-create-a-linux-dev-environment-on-windows]):
 
 ```bash
 export DISPLAY="$(/sbin/ip route | awk '/default/ { print $3 }'):0"
