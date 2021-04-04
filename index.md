@@ -4,27 +4,6 @@ author: Karl Jan Clinckspoor
 layout: default
 ---
 
-<script type="text/javascript" id="MathJax-script" async
-  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
-</script>
-
-<script type="text/javascript">
-window.MathJax = {
-  tex: {
-    packages: {'base', 'ams', 'mhchem']
-  },
-  loader: {
-    load: ['ui/menu', '[tex]/ams', '[tex]/mhchem']
-  }
-};
-</script>
-
-<!-- <script type="text/javascript">
-window.MathJax = {
-  tex: {packages: {'[+]': ['mhchem']}}
-};
-</script> -->
-
 Hi, I'm Karl, a PhD in Physical Chemistry with emphasis in Colloidal Chemistry.
 I finished my PhD in 2019 and am currently working as a research chemist at
 LABORE, a group dedicated to studying oil reservoirs, since June/2019.

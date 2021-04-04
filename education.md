@@ -3,6 +3,29 @@
 title: "Education"
 permalink: /education
 ---
+
+<script type="text/javascript" id="MathJax-script" async
+  src="https://cdn.jsdelivr.net/npm/mathjax@3/es5/tex-svg.js">
+</script>
+
+<script type="text/javascript">
+window.MathJax = {
+  tex: {
+    packages: {'base', 'ams', 'mhchem']
+  },
+  loader: {
+    load: ['ui/menu', '[tex]/ams', '[tex]/mhchem']
+  }
+};
+</script>
+
+<!-- <script type="text/javascript">
+window.MathJax = {
+  tex: {packages: {'[+]': ['mhchem']}}
+};
+</script> -->
+
+
 # Education
 
 
