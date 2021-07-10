@@ -1,6 +1,6 @@
 ---
 layout: post
-title: story with ultima
+title: My story with the Ultima series
 description: My story with the Ultima series
 author: Karl Jan Clinckspoor
 tags:
@@ -305,8 +305,7 @@ Well, it's already established I pirated most of the Ultima games. In my defence
 really a viable way for me to obtain them legally. And the same was about to happen again. By 
 sheer luck, there was a dude that had a website that sold pirated CDs of games and software -- 
 and he had Ultima IX! I bought it from him and received it in the mail some time later. As usual,
-I still have some of the files from this era stored. If you're reading this, owner of `www.procd.
-hpg.com.br`, I am deeply thankful to you.
+I still have some of the files from this era stored. If you're reading this, owner of `www.procd.hpg.com.br`, I am deeply thankful to you.
 
 So I installed and ran it without major hiccups that I can remember. Yes, there were crashes, 
 but I managed to play it from start to finish. Ultima IX is kind of a black sheep of the series. 
@@ -316,24 +315,27 @@ of letting new players learn more about the world. But I do understand the *impl
 after all, Dupre is a major companion since IV, and his sacrifice in VII-P2 was all the more 
 significant for it.
 
-I liked the puzzles and the dungeons, but didn't like the new world layout or 
-the closed, 
-hand-holdy nature of the story progression.[^7] I didn't feel particularly satisfied with the 
-"I'm your opposite, Avatar" plot-twist the Guardian throws at you, or the sacrificial ending, or 
-the character assassination that was Blackthorn. But I still enjoyed the game, despite Hythloth, 
-and felt some closure after defeating the Guardian once and for all.
+I liked the puzzles and the dungeons, but didn't like the new world layout or the closed, hand-holdy
+nature of the story progression.[^7] I didn't feel particularly satisfied with the
+"I'm your opposite, Avatar" plot-twist the Guardian throws at you, or the sacrificial ending, or the
+character assassination that was Blackthorn. But I still enjoyed the game, despite Hythloth, and
+felt some closure after defeating the Guardian once and for all.
 
 So yeah, this is what I wanted to tell you at this time. Hope you enjoyed going through my 
 memories with me.
 
 
 
-[^1]: I still have it, albeit with a replacement cover, and the pages are dirty and crinkled 
-from use.
+[^1]: I still have it, albeit with a replacement cover, and the pages are dirty and crinkled from use.
+
 [^2]: My first time installing an Operating System is a tale for another time. 
+
 [^3]: DOSBox came out in 2002, yet I only found out about it many years after the fact.
+
 [^4]: thankfully never outbid anyone - and never insisted a lot on this. It freaked me out.
+
 [^5]: or 9, if you count the ethereal void
+
 [^6]: I think I still have my handwritten notes stored somewhere. I should scan them, for posterity.
-[^7]: I do recognize, now, that it's much less linear after some time, or not linear at all if 
-you creatively jump, or use bread. The game still expects you to follow the intended path anyway.
+
+[^7]: I do recognize, now, that it's much less linear after some time, or not linear at all if you creatively jump, or use bread. The game still expects you to follow the intended path anyway.
