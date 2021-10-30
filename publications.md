@@ -11,8 +11,7 @@ permalink: /publications
 * <div itemscope itemtype="https://schema.org/Person"><a itemprop="sameAs" content="https://orcid.org/0000-0002-0916-2773" href="https://orcid.org/0000-0002-0916-2773" target="orcid.widget" rel="me noopener noreferrer" style="vertical-align:top;"><img src="https://orcid.org/sites/default/files/images/orcid_16x16.png" style="width:1em;margin-right:.5em;" alt="ORCID iD icon">https://orcid.org/0000-0002-0916-2773</a></div>
 
 * [Lattes CV](http://lattes.cnpq.br/6890909681073402)
-* [Google
-  Scholar](https://scholar.google.com.br/citations?user=fjQ_aXUAAAAJ&hl=en)
+* [Google Scholar](https://scholar.google.com.br/citations?user=fjQ_aXUAAAAJ&hl=en)
 * [Scopus](https://www.scopus.com/authid/detail.uri?authorId=55220196200)
 
 ## Overview
@@ -24,6 +23,82 @@ general, and personal, comments about what went into each article.
 * [Book chapters](#book-chapters)
 
 ## Articles in journals
+
+### (2021) Optimization of an *in-situ* polymerized and crosslinked hydrogel formulation for lost circulation control
+
+[Link](https://doi.org/10.1016/j.petrol.2021.109687), [Data](https://data.mendeley.com/datasets/mrrr7rk5pr/1)
+
+This article is I was the most involved in, from its conception, to the publication. It has 
+quite a story attached to it.
+
+We were working on this project, and we had to develop a gel to stop flow through fractures in a 
+well (lost circulation). It was a rough start, since I had to learn quite a lot in a very short 
+time. When we were progressing well, then pandemic struck, and we could not do any work 
+whatsoever. We had an initial formulation we thought would work, but we had no experimental 
+evidence. We had to plan something that would give an answer, and relatively quickly. The PI 
+insisted we look for experimental design (DOE), and so we did.
+
+In my studies of chemometrics, I was focused on techniques such as PCA, HCA, etc, and not in 
+experimental design. However, I was a bit fascinated by the area, and thought it would greatly 
+improve my technical repertoire. My wife studied the subject a few months earlier, during her 
+Master's, so I bounced off a few ideas and questions to her. Unfortunately, I didn't learn too 
+much from her, I just got very very confused with the bunch of plusses and minuses and how to
+interpret that. I figured I had to learn it by myself, so I got the book she used (loaned by her
+sister) and proceeded to study. I had a lot of "free" time, so why not. I did *every* exercise, 
+took copious notes, and even book bound my notes for posterity. I think it took me 1 month, but 
+I left feeling like I was an expert in the area. That's never a healthy mindset, especially 
+in statistics, with its wildly variable nomenclature and expectations, but this hasn't 
+caused us much trouble, yet.
+
+Then, we (me and Fuat) sat down (remotely) and established the variables we were going to study. 
+It's funny, he was adamant we should include pH, and I was against, but mostly due to laziness - 
+adjusting and measuring pH is something I truly loathe. In the end, he was *very* right in 
+including it. When the pandemic slowed down, we came back to the lab briefly, and he started his 
+experiments. We faced *so* many problems you wouldn't believe. We had to alter the starting 
+formulation several times, and we discovered many aspects about our system. But in the end, we 
+got to an acceptable starting composition, and we had the experiments and outputs very well 
+established. And so Fuat did all the experiments in a record time (two formulations per day, 
+starting at 8 and going well past 6). 
+
+One of the techniques consisted on monitoring the gelation using NMR. It was something entirely 
+new in our group, and not very much used for this application in the literature. Because of that,
+the equipment wasn't entirely built to support it. For example, we had to monitor the gel for 
+several hours, analysing it from time to time. That had to be done manually, since the 
+equipment software didn't support automation. Then, we had to analyse that in the software, and 
+it also didn't support automated analysis. The total was ~107 measurements, and each had to be 
+inverted, so ~214 data files, *for each composition*. That is about ~4000 individual files in 
+total, *only for NMR*. We would have gone absolutely crazy if we had to analyse them one by one. 
+Thankfully, the wonderful Python package [PyAutoGUI](https://pypi.org/project/PyAutoGUI/) came 
+to our rescue. We just had to insert the sample and push start on my script, and it would 
+analyse the data at specific intervals. After that, we ran another script that passed the data 
+through the CONTIN inverter. Much simpler.
+
+We now had to analyse the results. I taught Fuat how to do some of the fits in Origin, and wrote 
+some scripts to extract data from NMR, be it the peak value or the monoexponential fits of the 
+curves. Fuat merged everything in a homeric effort into a single Excel spreadsheet. We sat down 
+(in person) and I taught him how to perform the matrix operations required to obtain the model 
+parameters. Then, how to analyse the results, and how to reduce the model to have more "free" 
+degrees of freedom. Fuat then defended and had to write the article.
+
+Some time later, he hadn't advanced much, a lot due to lack of motivation and time. Having to 
+find a job during the pandemic consumes everyone, and I had other responsibilities. The time 
+came to write it finally, and so I started. For precaution, I re-analysed everything. I found 
+some discrepancies. The fit parameters were all 100% matching, but not the variable names. After
+some looking around, it was just some confusion in the variable names. Since I wrote the analysis in
+a Jupyter notebook, I thought we could publish the data too, so I worked to make it more readable.
+
+Then I started to write the article itself. That came quite easily, since I was so involved in 
+the project, and had spent so much time reading about the theme itself, focusing on more 
+fundamental aspects, rather than practical. In the end, I was able to explain everything we 
+observed, and gave some general directions for future work. It was done in less than a month I 
+think, from re-analysis to final article version.
+
+We submitted the article to the Journal of Petroleum Science and Engineering. A *lot* of time 
+passed, and we got an answer - minor corrections! I never, *ever* got an article so well 
+accepted at first. You can read the other tales I have here, and how I suffered to publish some 
+articles. Correction was very easy, just a few adjustments here and there. A *lot* of time later,
+we were accepted! Such a good feeling. Our hard work paid off. This is one of the articles I'm 
+most proud of.
 
 ### (2021) Urea induces (unexpected) formation of lamellar gel-phase in low concentration of cationic surfactants
 
