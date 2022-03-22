@@ -24,6 +24,17 @@ general, and personal, comments about what went into each article.
 
 ## Articles in journals
 
+### (2022) Mechanical Degradation of Biopolymers for Enhanced Oil Recovery Applications
+
+[Link](https://onepetro.org/SJ/article-abstract/doi/10.2118/209579-PA/482289/Mechanical-Degradation-of-Biopolymers-for-Enhanced?redirectedFrom=fulltext)
+
+This article was a journey and I learned a lot. I've been so focused on bulk rheology that I 
+didn't even know how polymers behaved inside porous media, where they're very limited regarding 
+where and how they can stretch. This, allied with one really excellent reviewer, taught me much. 
+And, note to self, don't be lazy when answering the questions. I didn't do one thing one 
+reviewer wanted and later regretted it. Did it in a later stage, and it showed exactly what the 
+reviewer wanted.
+
 ### (2021) Optimization of an *in-situ* polymerized and crosslinked hydrogel formulation for lost circulation control
 
 [Link](https://doi.org/10.1016/j.petrol.2021.109687), [Data](https://data.mendeley.com/datasets/mrrr7rk5pr/1)
@@ -215,7 +226,7 @@ the results I had were and developed this work.
 
 This article is very niche, basically deals with something only our group
 studied at that time, which is the formation of wormlike micelles based on
-isothermal titration calorimetry. We had a previous interpretation ([here](#the-thermal-signature-of-wormlike-micelles)) of the
+isothermal titration calorimetry. We had a previous interpretation of the
 results after much thinking, and this article updates that interpretation using
 some additional spectroscopic techniques.
 
