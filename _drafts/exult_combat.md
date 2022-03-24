@@ -22,7 +22,8 @@ A few disclaimers before we start:
 simplified. The combat goes by so quickly that many of the nuances can't be properly felt. 
 (Thanks for DominusExult for pointing this out to me!)
 * I'm not well versed in C++, so it's possible I grossly misread/misinterpreted something. 
-Please point it out!
+Please point it out! However, I'm simplifying some of the code for conciseness, e.g., many 
+if statements are quite complex, and I'll only mention the most relevant aspects at each part.
 * Anything pertaining usecode is, at this moment, a complete black box to me. I didn't get into 
 it in the least bit.
 
@@ -45,7 +46,7 @@ This document will be divided into a few sections
    3. Other schedules
    4. Alignment
 
-## Preliminary knowledge
+## Preliminary knowledge and brief overview
 
 In U7, the people and monsters out and about are `Actor`s, and every one has a schedule, even the
 Avatar! It dictates what they'll do and where they'll go and schedules are, in great part, what
@@ -67,24 +68,72 @@ hostile to `neutral` and `good`, and `chaotic`, which is hostile to all. These c
 modified by being charmed (and the `charmed_more_difficult` game option). Even if you attack a
 peaceful npc, yours or their alignment won't change.
 
-During combat, 
+During combat, you attack with melee weapons, thrown weapons (good or bad), or with magic. These all
+have a base damage, powers and damage types. Hit probability and damage calculations are modified by
+the attacker's and defender's stats (STR, DEX, INT, COMBAT). Unless usecode shenanigans are at 
+play, everyone is considered the same way!
 
-------------
-
-Funny thing is, even if they aren't hostile when encountering them (because their schedules don't
-seek out foes), if you enter attack mode near them, you'll attack them "unprovoked".
+After defeating an enemy, you gain experience points and, if you kill the enemy, access to (part of) 
+its inventory. Combat continues until all enemies around are dead or unconscious.
 
 ## Overview of how the combat schedule works
 
 ### How to enter combat
 
+The simples way of entering combat is by toggling the combat state either in the ragdoll screen 
+or pressing 'C'. This iterates through all party members and sets their schedule from 
+`Follow_avatar` to `Combat`. In this state, everyone in the party will start to look for enemies 
+and approach them. But not before! You can calmly walk around and talk to npcs with hostile 
+alignments provided none of you enter the combat state. The instant you press 'C' however, you'll attack. 
+For example, Iriale Silvermist, located in the Fellowship retreat, is Evil but peaceful (for 
+some time), as well as some npcs in New Magincia (Robin, Battles and Leavell).
+
+An npc being attacked is another way of entering combat. An `Actor::fight_back` function is 
+called. First, it checks if someone in the party is being attacked and the Avatar can't act 
+(paralyzed, asleep, knocked out or dead), and if so, sets everyone to fight. If the Avatar was 
+being a bully and attacking a peaceful npc that can react back or someone saw or heard the 
+attack, between 1 and 3 guards will be summoned from offscreen to fight/arrest the Avatar and 
+up to 3 sentient npcs (INT >= 6) in the vicinity will be set to attack the Avatar.
+
+As I mentioned before, npcs typically aren't walking around in the combat schedule. Rather, they 
+are in a schedule that's looking for enemies. One such schedule is `Patrol`. In `Patrol`, if the 
+npc is set to look for enemies, as soon as some alignment clash is found, they hone in on the 
+perpetrator.
+
+Another way of 
+
+TODO: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do 
+they spawn in patrol?
+
+------------
+Funny thing is, even if they aren't hostile when encountering them (because their schedules don't
+seek out foes), if you enter attack mode near them, you'll attack them "unprovoked".
 ### What happens every turn
 
-### Differences between melee and ranged weapons
+### Differences between weapons types and magic
+
+
+-----------
+
+TODO: Check this with random mages in the wild!
+Magic
+works different between enemies and the Avatar, who requires a spellbook.
+State magic is
 
 ## Hit probabilities
 
+
 ## Damage calculations
+
+--------------------
+
+That's why you don't
+find liches or mages, for instance, with reagents and spellbooks. When they die, the "magic"
+weapons are removed.
+
+When receiving damage, an npc's health is reduced. If it gets to zero or below, it's knocked 
+unconscious. In this state, its dex is reduced to 0 (meaning it can't attack) and it is given 
+less priority than conscious opponents. 
 
 ## Experience calculations
 
@@ -117,30 +166,33 @@ There a few more defined by exult: `walk_to_schedule`, `street_maintenance`, `ar
 
 ## NPC alignments
 
-In BG, as soon as you start the game, only you and Iolo of the companions are good. Spark, Shamino, Dupre, even Lord British, are neutral.
+In BG, as soon as you start the game, only you and Iolo of the companions are good. Spark, Shamino,
+Dupre, even Lord British, are neutral.
 
 Sullivan, a prisoner of the fellowship in Buc's den, and Leonardo, a dog i Serpent's hold, is good.
 
-Evil is "Juggernaut", a fighter in IOTA, Kali, a dragon is a cave in IOTA, Stone Harpy in Spektran, some enemies at that base in the Serpent's spine, and of course Elizabeth, Abraham and crew. Batlin has many "faces", and only "Batlin_monster" is evil. The others are neutral.
+Evil is "Juggernaut", a fighter in IOTA, Kali, a dragon is a cave in IOTA, Stone Harpy in Spektran,
+some enemies at that base in the Serpent's spine, and of course Elizabeth, Abraham and crew. Batlin
+has many "faces", and only "Batlin_monster" is evil. The others are neutral.
 
 Chaotic is Goth, a guard in Yew,
 
-Evil is Iriale Silvermist, in the caves in the Fellowship retreat, Robin, Battles, Leavell in New Magincia.
+Evil is Iriale Silvermist, in the caves in the Fellowship retreat, Robin, Battles, Leavell in New
+Magincia.
 
 In SI, a cursory look using the cheat menu reveals that the *vast* majority of NPCs are neutral.
 
 The good ones are the ones in the party, Stephano, Dupre, Iolo, Shamino.
 
-Evil ones are enemies like some Gwani (?), Goblins, prisoners, Perry Stokes (It's the software pirate in the hut in the woods), billy_cain (goblin), steve_powers (goblin), chuck (goblin), key_guy (troll), Anti Dupre (but not Anti-Iolo??? or Anti-Shamino???), Goblin king and a few antagonists, like the
+Evil ones are enemies like some Gwani (?), Goblins, prisoners, Perry Stokes (It's the software
+pirate in the hut in the woods), billy_cain (goblin), steve_powers (goblin), chuck (goblin),
+key_guy (troll), Anti Dupre (but not Anti-Iolo??? or Anti-Shamino???), Goblin king and a few
+antagonists, like the
 
-Chaotics are Rabindrinath, Crusty (a jester in a hut in the goblin woods) and perhaps some other unnamed enemies
+Chaotics are Rabindrinath, Crusty (a jester in a hut in the goblin woods) and perhaps some other
+unnamed enemies
 
 Shoutout to the neutral nightmare in the dream world, SmithzHorse.
-
-## HOW TO ENTER COMBAT
-
-There are a few methods to enter combat.
-
 
 
 ## Damage calculations
