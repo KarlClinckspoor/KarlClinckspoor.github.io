@@ -104,6 +104,9 @@ Another way of
 
 TODO: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do 
 they spawn in patrol?
+   - No! Many normal enemies spawn in combat already. They never left the combat state and kept 
+     failing repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
+   - Some humanoids did spawn in patrol though. 
 
 ------------
 Funny thing is, even if they aren't hostile when encountering them (because their schedules don't
@@ -116,9 +119,11 @@ seek out foes), if you enter attack mode near them, you'll attack them "unprovok
 -----------
 
 TODO: Check this with random mages in the wild!
-Magic
-works different between enemies and the Avatar, who requires a spellbook.
-State magic is
+Magic works different between enemies and the Avatar, who requires a spellbook. Spells are 
+actually items they can equip and "throw" at you. This makes spellcasters especially dangerous. 
+When killed, these items are removed from them so you can't access them natually. However, I 
+distinctly remember a few jesters around the castle of the white dragon that spawned with death 
+bolts or something like that, and which I could loot (in the original)
 
 ## Hit probabilities
 
