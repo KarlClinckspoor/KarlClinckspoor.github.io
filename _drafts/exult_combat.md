@@ -9,6 +9,24 @@ tags:
 - c++
 ---
 
+TASKS:
+
+TODO: Add some traces to double check if it's only party members that give up combat and return
+to the previous schedule
+
+TODO: Check if npc spells have a set number of uses. ExultStudio can be useful for this.
+
+TODO: Check all notes in the text.
+
+DONE: Check if random mages spawn with spells equipped.
+
+DONE: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do
+they spawn in patrol?
+- No! Many normal enemies spawn in combat already. They never left the combat state and kept
+  failing repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
+- Some humanoids did spawn in patrol though (pirate and mages)
+
+
 I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out 
 how combat works. I really enjoy watching/reading deep dives into game mechanics and thought, 
 "well, why couldn't I do one, and of one of my favorite series?". Here's the result of a few 
@@ -76,11 +94,26 @@ play, everyone is considered the same way!
 After defeating an enemy, you gain experience points and, if you kill the enemy, access to (part of) 
 its inventory. Combat continues until all enemies around are dead or unconscious.
 
+You can enable a debug feature in Exult called `combat_trace` to print out some additional 
+information about what's going on in combat to what's called `standard out`, or `stdout`. If you 
+run exult from a console, it'll print out to that, or it'll be in the file called `stdout.txt` 
+in the Exult folder. To enable this, modify or include these lines in `exult.cfg`:
+
+```
+<debug>
+    <trace>
+        <combat>
+            yes
+        </combat>
+    </trace>
+</debug>
+```
+
 ## Overview of how the combat schedule works
 
 ### How to enter combat
 
-The simples way of entering combat is by toggling the combat state either in the ragdoll screen 
+The simplest way of entering combat is by toggling the combat state either in the ragdoll screen 
 or pressing 'C'. This iterates through all party members and sets their schedule from 
 `Follow_avatar` to `Combat`. In this state, everyone in the party will start to look for enemies 
 and approach them. But not before! You can calmly walk around and talk to npcs with hostile 
@@ -93,20 +126,20 @@ called. First, it checks if someone in the party is being attacked and the Avata
 (paralyzed, asleep, knocked out or dead), and if so, sets everyone to fight. If the Avatar was 
 being a bully and attacking a peaceful npc that can react back or someone saw or heard the 
 attack, between 1 and 3 guards will be summoned from offscreen to fight/arrest the Avatar and 
-up to 3 sentient npcs (INT >= 6) in the vicinity will be set to attack the Avatar.
+up to 3 sentient npcs (INT >= 6) in the vicinity will be set to attack the Avatar. Funnily, 
+their alignment is *chaotic* and their schedule is set to talk to the Avatar.
 
-As I mentioned before, npcs typically aren't walking around in the combat schedule. Rather, they 
-are in a schedule that's looking for enemies. One such schedule is `Patrol`. In `Patrol`, if the 
-npc is set to look for enemies, as soon as some alignment clash is found, they hone in on the 
-perpetrator.
+From what I've found, enemies created from eggs, summon, cloned (slimes) or manually placed are
+either in the `Combat` or `Patrol` schedules. In the `Patrol` schedule, and its derived schedules,
+if the npc is set to look for combat and it sees another npc with an alignment clash, it will enter
+the combat state. Npcs have a counter to determine how many times they've failed to find an
+opponent. After having failed, if they had a previous schedule and their alignment is good, they'll
+return to their previous schedule (TODO: re-verify when to give up and explore other spawn
+situations). Others just keep trying and trying to find an enemy until you walk far away enough from
+them.
 
-Another way of 
-
-TODO: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do 
-they spawn in patrol?
-   - No! Many normal enemies spawn in combat already. They never left the combat state and kept 
-     failing repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
-   - Some humanoids did spawn in patrol though. 
+Now that the required parties have entered combat, everyone will go through its 
+`Combat_schedule::now_what` function. 
 
 ------------
 Funny thing is, even if they aren't hostile when encountering them (because their schedules don't
@@ -115,15 +148,14 @@ seek out foes), if you enter attack mode near them, you'll attack them "unprovok
 
 ### Differences between weapons types and magic
 
+Magic works different between enemies and the Avatar, who requires a spellbook. Spells are
+actually items they can equip and "throw" at you. This makes spellcasters especially dangerous.
+When killed, these items are removed from them so you can't access them natually. However, I
+distinctly remember a few jesters around the castle of the white dragon that spawned with death
+bolts or something like that, and which I could loot (in the original)
 
 -----------
 
-TODO: Check this with random mages in the wild!
-Magic works different between enemies and the Avatar, who requires a spellbook. Spells are 
-actually items they can equip and "throw" at you. This makes spellcasters especially dangerous. 
-When killed, these items are removed from them so you can't access them natually. However, I 
-distinctly remember a few jesters around the castle of the white dragon that spawned with death 
-bolts or something like that, and which I could loot (in the original)
 
 ## Hit probabilities
 
@@ -161,6 +193,9 @@ There a few more defined by exult: `walk_to_schedule`, `street_maintenance`, `ar
 , `first_scripted_schedule`.
 
 ### Actor alignment musings
+
+
+If you manage to set your own schedule to Evil, many shenanigans can happen.
 
 ---------------------
 
