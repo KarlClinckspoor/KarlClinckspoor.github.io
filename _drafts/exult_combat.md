@@ -1,18 +1,17 @@
 ---
-layout: post
-title: Exult combat
-description: A primer on how combat works in Exult
-author: Karl Jan Clinckspoor
-tags:
+layout: post title: Exult combat description: A primer on how combat works in Exult author: Karl Jan
+Clinckspoor tags:
+
 - games
 - ultima
 - c++
+
 ---
 
 TASKS:
 
-TODO: Add some traces to double check if it's only party members that give up combat and return
-to the previous schedule
+TODO: Add some traces to double check if it's only party members that give up combat and return to
+the previous schedule
 
 TODO: Check if npc spells have a set number of uses. ExultStudio can be useful for this.
 
@@ -20,30 +19,31 @@ TODO: Check all notes in the text.
 
 DONE: Check if random mages spawn with spells equipped.
 
-DONE: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do
-they spawn in patrol?
-- No! Many normal enemies spawn in combat already. They never left the combat state and kept
-  failing repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
+DONE: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do they
+spawn in patrol?
+
+- No! Many normal enemies spawn in combat already. They never left the combat state and kept failing
+  repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
 - Some humanoids did spawn in patrol though (pirate and mages)
 
+I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out how
+combat works. I really enjoy watching/reading deep dives into game mechanics and thought,
+"well, why couldn't I do one, and of one of my favorite series?". Here's the result of a few hours
+of code reading, note writing, a bit of source code manipulation and running some simulations. I
+hope this brings you a bit of satisfaction, and I'm certain you'll read some parts and think "Oh, so
+that's why this happens!"
 
-I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out 
-how combat works. I really enjoy watching/reading deep dives into game mechanics and thought, 
-"well, why couldn't I do one, and of one of my favorite series?". Here's the result of a few 
-hours of code reading, note writing, a bit of source code manipulation and running some 
-simulations. I hope this brings you a bit of satisfaction, and I'm certain you'll read some 
-parts and think "Oh, so that's why this happens!"
+A few disclaimers before we start:
 
-A few disclaimers before we start: 
-
-* The combat in exult does not work exactly like in the originals. It's 
-simplified. The combat goes by so quickly that many of the nuances can't be properly felt. 
-(Thanks for DominusExult for pointing this out to me!)
-* I'm not well versed in C++, so it's possible I grossly misread/misinterpreted something. 
-Please point it out! However, I'm simplifying some of the code for conciseness, e.g., many 
-if statements are quite complex, and I'll only mention the most relevant aspects at each part.
-* Anything pertaining usecode is, at this moment, a complete black box to me. I didn't get into 
-it in the least bit.
+* The combat in exult does not work exactly like in the originals. It's simplified. The combat goes
+  by so quickly that many of the nuances can't be properly felt.
+  (Thanks for DominusExult for pointing this out to me!)
+* I'm not well versed in C++, so it's possible I grossly misread/misinterpreted something. Please
+  point it out! However, I'm simplifying some of the code for conciseness, e.g., many if statements
+  are quite complex, and I'll only mention the most relevant aspects at each part.
+* Anything pertaining usecode is, at this moment, a complete black box to me. I didn't get into it
+  in the least bit.
+* I'm using the master branch on github, commit 4df38f34, if you want to accompany some parts.
 
 ## Structure
 
@@ -51,33 +51,33 @@ This document will be divided into a few sections
 
 1. Preliminary knowledge
 2. An overview of how the combat schedule works
-   1. How to enter combat
-   2. What happens every "turn"
-   3. Differences between melee and ranged weapons
+    1. How to enter combat
+    2. What happens every "turn"
+    3. Differences between melee and ranged weapons
 3. Hit probabilities
 4. Damage calculations
 5. Experience calculations
 6. Final notes
 7. Appendices
-   1. What stat to invest in?
-   2. How to compile exult and modify the code?
-   3. Other schedules
-   4. Alignment
+    1. What stat to invest in?
+    2. How to compile exult and modify the code?
+    3. Other schedules
+    4. Alignment
 
 ## Preliminary knowledge and brief overview
 
 In U7, the people and monsters out and about are `Actor`s, and every one has a schedule, even the
 Avatar! It dictates what they'll do and where they'll go and schedules are, in great part, what
-makes U7 special to so many. In essence, it's a form of artificial intelligence. From now on, 
-I'll use the terms Actors and npcs interchangeably.
+makes U7 special to so many. In essence, it's a form of artificial intelligence. From now on, I'll
+use the terms Actors and npcs interchangeably.
 
 The simplest schedule is `wait`, which does **nothing**, followed by `loiter` which means wander
 around aimlessly. Even the simplest schedule has a function called `now_what`, which tells the npc
 what they'll do once their current task is finished.
 
-The schedule of interest of this document is appropriately called `Combat_schedule`. One of the 
-first things that happens in `Combat_schedule::now_what` is to look for a foe. An npc is 
-considered a foe if there's an *alignment clash*.
+The schedule of interest of this document is appropriately called `Combat_schedule`. One of the
+first things that happens in `Combat_schedule::now_what` is to look for a foe. An npc is considered
+a foe if there's an *alignment clash*.
 
 `Alignment` refers to an npc's stance towards the Avatar. There are 4 alignments, starting from 0.
 First, `neutral`, comprising most of the named npcs around (Even LB!), then there's `good`, which
@@ -88,15 +88,15 @@ peaceful npc, yours or their alignment won't change.
 
 During combat, you attack with melee weapons, thrown weapons (good or bad), or with magic. These all
 have a base damage, powers and damage types. Hit probability and damage calculations are modified by
-the attacker's and defender's stats (STR, DEX, INT, COMBAT). Unless usecode shenanigans are at 
-play, everyone is considered the same way!
+the attacker's and defender's stats (STR, DEX, INT, COMBAT). Unless usecode shenanigans are at play,
+everyone is considered the same way!
 
-After defeating an enemy, you gain experience points and, if you kill the enemy, access to (part of) 
+After defeating an enemy, you gain experience points and, if you kill the enemy, access to (part of)
 its inventory. Combat continues until all enemies around are dead or unconscious.
 
-You can enable a debug feature in Exult called `combat_trace` to print out some additional 
-information about what's going on in combat to what's called `standard out`, or `stdout`. If you 
-run exult from a console, it'll print out to that, or it'll be in the file called `stdout.txt` 
+You can enable a debug feature in Exult called `combat_trace` to print out some additional
+information about what's going on in combat to what's called `standard out`, or `stdout`. If you run
+exult from a console, it'll print out to that, or it'll be in the file called `stdout.txt`
 in the Exult folder. To enable this, modify or include these lines in `exult.cfg`:
 
 ```
@@ -113,21 +113,21 @@ in the Exult folder. To enable this, modify or include these lines in `exult.cfg
 
 ### How to enter combat
 
-The simplest way of entering combat is by toggling the combat state either in the ragdoll screen 
-or pressing 'C'. This iterates through all party members and sets their schedule from 
-`Follow_avatar` to `Combat`. In this state, everyone in the party will start to look for enemies 
-and approach them. But not before! You can calmly walk around and talk to npcs with hostile 
-alignments provided none of you enter the combat state. The instant you press 'C' however, you'll attack. 
-For example, Iriale Silvermist, located in the Fellowship retreat, is Evil but peaceful (for 
-some time), as well as some npcs in New Magincia (Robin, Battles and Leavell).
+The simplest way of entering combat is by toggling the combat state either in the ragdoll screen or
+pressing 'C'. This iterates through all party members and sets their schedule from
+`Follow_avatar` to `Combat`. In this state, everyone in the party will start to look for enemies and
+approach them. But not before! You can calmly walk around and talk to npcs with hostile alignments
+provided none of you enter the combat state. The instant you press 'C' however, you'll attack. For
+example, Iriale Silvermist, located in the Fellowship retreat, is Evil but peaceful (for some time),
+as well as some npcs in New Magincia (Robin, Battles and Leavell).
 
-An npc being attacked is another way of entering combat. An `Actor::fight_back` function is 
-called. First, it checks if someone in the party is being attacked and the Avatar can't act 
-(paralyzed, asleep, knocked out or dead), and if so, sets everyone to fight. If the Avatar was 
-being a bully and attacking a peaceful npc that can react back or someone saw or heard the 
-attack, between 1 and 3 guards will be summoned from offscreen to fight/arrest the Avatar and 
-up to 3 sentient npcs (INT >= 6) in the vicinity will be set to attack the Avatar. Funnily, 
-their alignment is *chaotic* and their schedule is set to talk to the Avatar.
+An npc being attacked is another way of entering combat. An `Actor::fight_back` function is called.
+First, it checks if someone in the party is being attacked and the Avatar can't act
+(paralyzed, asleep, knocked out or dead), and if so, sets everyone to fight. If the Avatar was being
+a bully and attacking a peaceful npc that can react back or someone saw or heard the attack, between
+1 and 3 guards will be summoned from offscreen to fight/arrest the Avatar and up to 3 sentient
+npcs (INT >= 6) in the vicinity will be set to attack the Avatar. Funnily, their alignment is *
+chaotic* and their schedule is set to talk to the Avatar.
 
 From what I've found, enemies created from eggs, summon, cloned (slimes) or manually placed are
 either in the `Combat` or `Patrol` schedules. In the `Patrol` schedule, and its derived schedules,
@@ -138,39 +138,108 @@ return to their previous schedule (TODO: re-verify when to give up and explore o
 situations). Others just keep trying and trying to find an enemy until you walk far away enough from
 them.
 
-Now that the required parties have entered combat, everyone will go through its 
-`Combat_schedule::now_what` function. 
+### Combat state was created
 
-------------
-Funny thing is, even if they aren't hostile when encountering them (because their schedules don't
-seek out foes), if you enter attack mode near them, you'll attack them "unprovoked".
-### What happens every turn
+When a combat schedule is created, a few standard values are added (`combat.cc:1262`). The npc
+checks if it has any weapon (or spellbook) readied and, if not, tries to ready the best weapon and
+shield it can find in its possession. If it couldn't find any, the npc tries to protect itself with
+the best shield. If anything couldn't be found, the npc resigns itself to fight with their hands.
+
+The best weapon is found by iterating through all the items in its inventory that aren't inside
+locked containers, that can be equipped in the hands, and the finding the one with
+the `base_strength`. If it's a ranged weapon, it considers the ones with the longest range and the
+best ammo found in the inventory. I'll describe weapons more elsewhere, but suffice to say that the
+strength of a weapon is its base damage and weapon powers and damage types provide bonuses. The best
+ammo depends on its base strength (same as weapons) and how much ammo you have left.
+
+Right after creating any schedule, its `now_what` function is called. In the case of
+`Combat_schedule::now_what`, this function looks through the current state of combat of this
+specific npc and decides what action to perform. After this event is handled, this function is
+called again. If this game was a more traditional turn-based game, every npc would call
+its `Combat_schedule::now_what` function in sequence. However, actions, like moving, striking, take
+varying amounts of time, so a set order isn't always followed. Nevertheless, I will call this a
+"turn", to simplify the nomenclature.
+
+### The combat loop
+
+What actions are performed in each turn depend on the state of the combat. These states are defined
+in `combat.h:36`, and make the combat schedule a finite state machine. These are:
+
+* `initial`: When the schedule was just constructed
+* `approach`: When the npc is approaching an enemy to attack
+* `retreat`: When the npc is moving away from an enemy (e.g. get to a better range)
+* `flee`: When the npc is fleeing from combat
+* `strike`: When the npc is striking the enemy with their melee weapon (TODO: thrown uses this?)
+* `fire`: When the npc is firing their ranged weapon
+* `parry`: Should be used when parrying, but this isn't used anywhere in the code base.
+* `stunned`: When the npc was just hit
+* `wait_return`: When the npc is waiting for their ranged weapon to return (boomerangs, magic axes)
+
+At the start if `what_now`, the function does some minor tests. It sets the state to `approach`
+if the schedule was just created, makes the npc wait for 1 second before calling again if it's
+sleeping, makes the npc run away if it's attack mode is `flee`, or resumes following the Avatar if
+you exited from combat after some time, and checks if the npc needs a new target. For example, it
+could have died or turned invisible.
+
+The running away function just finds some random position and with a 3/4 chance, screams loudly, and
+1/4 chance just yells some standard fleeing scream. No mention here of dropping equipment (a
+aggravating feature of the original).
+
+And finally we reach a branching point, where the actor will decide on its course of action
+depending on its state. The sequence that follows if roughly this:
+
+Tries to find and approach an enemy. If the npc is close enough, its state is changed to `strike`
+or `fire` and next time `now_what` is called, it will process the hit and damage calculations. Right
+as `strike` or `fire` are processed, the state goes back to `approach`. The exception is for thrown
+weapons such as a boomerang, where the state is changed to `wait_return`, then reverts to `approach`
+. However, before any attack can happen, actors need to build up "initiative" (`dex_points`), as
+I'll discuss in the next section.
+
+#### Building up initiative and the `approach` state
+
+If the schedule was just created, an enemy died/turned invisible, we need to approach it (`combat.cc:616 approach_foe`). CONTINUE HERE.
+
+An actor's `dex_points` starts at 0. The npc's dexterity stat is added to `dex_points` until a
+hardcoded value of 30 (`dex_to_attack`) is reached. Before that, no attacks can occur. If an attack
+goes through, 30 is removed from the accumulated dex, so any excess value carries over to the next "
+turn".
+
+In other words, dexterity controls how quickly an actor can attack. A dex value of 30 means they can
+attack every other turn. If the npc's dex is 29, the actor only attacks after 3 initial turns, and
+then the accumulated `dex_points` lets it attack every other turn. Only after **59** turns its
+excess points are spent and the npc will have to build up points for 3 turns again, and attack on
+turn 62. If the npc's dex is 15, this means it will always attack once every 3 turns. A dex attribute of 1 is comical. The npc will stare at the target for quite a while until they manage to build up an attack.
+
+
+
 
 ### Differences between weapons types and magic
 
-Magic works different between enemies and the Avatar, who requires a spellbook. Spells are
-actually items they can equip and "throw" at you. This makes spellcasters especially dangerous.
-When killed, these items are removed from them so you can't access them natually. However, I
-distinctly remember a few jesters around the castle of the white dragon that spawned with death
-bolts or something like that, and which I could loot (in the original)
+Magic works different between enemies and the Avatar, who requires a spellbook. Spells are actually
+items they can equip and "throw" at you. This makes spellcasters especially dangerous. When killed,
+these items are removed from them so you can't access them natually. However, I distinctly remember
+a few jesters around the castle of the white dragon that spawned with death bolts or something like
+that, and which I could loot and use for a bit. However, these items have a quality level, which
+specifies their number of uses, such as wands. For example, Aram-dol has two spells equipped, one
+with 99 uses and another with 2. Good luck surviving 99 casts of some spell.
+
+![Mage inventory](/assets/img/exult_mage_items.PNG)
 
 -----------
 
-
 ## Hit probabilities
-
 
 ## Damage calculations
 
 --------------------
 
-That's why you don't
-find liches or mages, for instance, with reagents and spellbooks. When they die, the "magic"
+That's why you don't find liches or mages, for instance, with reagents and spellbooks. When they
+die, the "magic"
 weapons are removed.
 
-When receiving damage, an npc's health is reduced. If it gets to zero or below, it's knocked 
-unconscious. In this state, its dex is reduced to 0 (meaning it can't attack) and it is given 
-less priority than conscious opponents. 
+When receiving damage, an npc's health is reduced. If it gets to zero or below, it's knocked
+unconscious. In this state, its dex is reduced to 0 (meaning it can't attack) and it is given less
+priority than conscious opponents.
 
 ## Experience calculations
 
@@ -194,15 +263,15 @@ There a few more defined by exult: `walk_to_schedule`, `street_maintenance`, `ar
 
 ### Actor alignment musings
 
-
 If you manage to set your own schedule to Evil, many shenanigans can happen.
+
+### A brief description of weapons
+
+Weapons
 
 ---------------------
 
-
 ## Overview of schedules
-
-
 
 ## NPC alignments
 
@@ -234,11 +303,13 @@ unnamed enemies
 
 Shoutout to the neutral nightmare in the dream world, SmithzHorse.
 
-
 ## Damage calculations
 
+Quality dictates weapon charges, like wands.
+
 * Weapon have a few types of powers:
-    * sleep, charm, curse, poison, paralyze, magebane, unknown, no damage (puts Dragan to sleep, see [here](https://ultima.fandom.com/wiki/Draygan))
+    * sleep, charm, curse, poison, paralyze, magebane, unknown, no damage (puts Dragan to sleep,
+      see [here](https://ultima.fandom.com/wiki/Draygan))
     * These appear to be a byte. Maybe `weapons.dat` is read like this?
   > 00000000
   > ||||||||
@@ -253,16 +324,17 @@ Shoutout to the neutral nightmare in the dream world, SmithzHorse.
 * There's 6 types of damage.
     * normal (0), fire(1), magic (2), lightning (3), ethereal (4), sonic (5)
 
-
 ### From combat_ops.h - DONE
 
-* There's checks for paused, checks for difficulty (0 = normal, >0 = harder, <0 = easier). These can be accessed from the menu!
-* There's two combat modes, original and keypause, with the latter using space as suspend/resume combat. This really lets you direct attacks from specific party members to specific targets.
+* There's checks for paused, checks for difficulty (0 = normal, >0 = harder, <0 = easier). These can
+  be accessed from the menu!
+* There's two combat modes, original and keypause, with the latter using space as suspend/resume
+  combat. This really lets you direct attacks from specific party members to specific targets.
 * There's an option to show hit numbers? -- yes! That's actually an option in the menus.
 * What's charmed more difficult? - According to the manual, does this:
-    * In normal, Avatar can't be charmed. In the original, he could, but nothing would be changed. In hard, charmed party members can't have their inventory accessed, and will continue to attack even if combat is stopped.
-
-
+    * In normal, Avatar can't be charmed. In the original, he could, but nothing would be changed.
+      In hard, charmed party members can't have their inventory accessed, and will continue to
+      attack even if combat is stopped.
 
 ## Conclusions with code snippets
 
@@ -298,7 +370,9 @@ bool is_knocked_out() const {
     3. Finds ammo info, and if it's not available. Didn't understand.
     4. Is it enough? (Triple crossbow?)
     5. Calculates the strength with `ammo_info->get_base_strength`
-    6. Strength is balanced if there's little of the ammo (if there's less than 5 times what's needed). If so, strength is divided by 3. If it's less than 10 times what's needed, strength divided by 2.
+    6. Strength is balanced if there's little of the ammo (if there's less than 5 times what's
+       needed). If so, strength is divided by 3. If it's less than 10 times what's needed, strength
+       divided by 2.
     7. Goes through everything until the best ammo is found.
 
 ```c++
@@ -341,11 +415,17 @@ Game_object *Actor::find_best_ammo(
 ### The effective range is either melee or the missile weapon's own range. If it's a poor or good throwable, the distance is affected by the quality and attacker's stats, limited to 31.
 
 1. Starts with weapon info and reach (int).
-2. If it's less than 0 (i.e., -1), it uses the weapon's reach. If there's no weapon info, uses monster's specific reach or the default reach.
+2. If it's less than 0 (i.e., -1), it uses the weapon's reach. If there's no weapon info, uses
+   monster's specific reach or the default reach.
 3. If (not uses), which means, if hand-hand or ranged, returns the weapon's reach.
+
 * Uses is, from `weaponinfo.h`:
     * 0 if hand-hand, 1 of poor throwable, 2 if good throwable, 3 if missile firing
-4. If either a poor or good throwable, gets the strength and combat stats of the actor. Whichever is higher is the current range. If it's a good thrown weapon, the range is multiplied by 2. If it's lower than the reach, then it's replaced by reach, and if it's greater than 31 (units?), it's cut to 31.
+
+4. If either a poor or good throwable, gets the strength and combat stats of the actor. Whichever is
+   higher is the current range. If it's a good thrown weapon, the range is multiplied by 2. If it's
+   lower than the reach, then it's replaced by reach, and if it's greater than 31 (units?), it's cut
+   to 31.
 
 ```c++
 /**
