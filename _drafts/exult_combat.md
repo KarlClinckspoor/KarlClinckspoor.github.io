@@ -1,10 +1,13 @@
 ---
-layout: post title: Exult combat description: A primer on how combat works in Exult author: Karl Jan
-Clinckspoor tags:
+layout: post
+title: Exult combat
+description: A primer on how combat works in Exult
+author: Karl Jan Clinckspoor
 
-- games
-- ultima
-- c++
+tags:
+    - games
+    - ultima
+    - c++
 
 ---
 
@@ -13,7 +16,7 @@ TASKS:
 TODO: Add some traces to double check if it's only party members that give up combat and return to
 the previous schedule
 
-TODO: Check if npc spells have a set number of uses. ExultStudio can be useful for this.
+DONE: Check if npc spells have a set number of uses. ExultStudio can be useful for this.
 
 TODO: Check all notes in the text.
 
@@ -21,7 +24,6 @@ DONE: Check if random mages spawn with spells equipped.
 
 DONE: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do they
 spawn in patrol?
-
 - No! Many normal enemies spawn in combat already. They never left the combat state and kept failing
   repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
 - Some humanoids did spawn in patrol though (pirate and mages)
@@ -197,9 +199,60 @@ I'll discuss in the next section.
 
 #### Building up initiative and the `approach` state
 
-If the schedule was just created, an enemy died/turned invisible, we need to approach it (`combat.cc:616 approach_foe`). CONTINUE HERE.
+If the schedule was just created, an enemy died/turned invisible, we need to approach
+it (`combat.cc:616 approach_foe`). If there's no opponents, it tries to find a foe
+`combat.cc:445 find_foe`. And `find_foe` calls `find_opponents`. It's quite a rabbit hole for a seeminly
+simple function.
 
-An actor's `dex_points` starts at 0. The npc's dexterity stat is added to `dex_points` until a
+In summary, npcs keep and regularly update a list of possible opponents. As the enemies are
+defeated, they are removed from the list. After all are defeated, npcs consider unconscious enemies
+to finish them off. One thing that greatly increases the complexity of these functions is alignment
+changes caused by being charmed. In the original, if the Avatar was charmed, you could still control
+him/her despite the status, you could access any charmed party member's inventory, and they would
+leave combat if you did. Exult introduced an option called `charmed_more_difficult` where this is
+fixed. Charmed party members won't obey you, will continue to attack and you won't be able to access
+their inventory, including the Avatar. Upon alignment changes, the list of opponents is reset. Also,
+invisible enemies are ignored if the npc can't see invisible. The range is 9 chunks around the npc.
+If you have `combat_trace` on, you'll see a bunch of `X pushed back (number) y`. Here, `pushed back`
+means "added to the end of the list".
+
+After having found a list of possible opponents, which one that's selected depends on the npc's attack mode. 
+I personally always left all party members in `nearest` and just mowed through all resistance. Here's what
+the attack modes do in Exult.
+
+* *weakest* targets the opponent with the smallest *strength* status.
+* *strongest* targets the opponent with the largest *strength* status.
+* *nearest* finds the closest opponent and avoids fleeing enemies.
+* *protect* finds the attackers of a protected party member. Apparently, if there's more than one
+  protected party member, the more recently added ones receive priority (so only leave one
+  protected). From these attackers, gets the closest one to the protected party member. If no one's
+  protected, a random one is chosen. Also, the npc will yell they'll protect their friend (50%
+  chance).
+* *random* and every other attack mode: Chooses the first one in the list of opponents, which I
+  guess is random enough.
+
+If no enemy is found, a `failures` counter is increased and a 24 second pause is added before
+searching for new enemies. Otherwise, the npc starts trying to path to its opponent, and if it can
+teleport close to the target, there's a 1/4 chance of doing so. Before that though, a monstruous
+chain of boolean operations is made to check if the npc should run away. Let's break it down:
+
+* If it isn't a monster and, if it is, it can die (??) AND
+  * The attack mode is flee OR
+    * the attack mode isn't berserk AND
+      * the enemy can move (?) AND it isn't the main actor (Avatar) and the npc's health is less than 3
+
+Only if all these conditions are met, the npc runs away. Phew!
+
+Now we try to path to the opponent, combat music starts playing, `combat_trace` prints out "X is
+pursuing Y", yells something with 50% chance and sets the npc to approach the opponent, stopping
+when its weapon is close enough to hit. If the npc couldn't path to the opponent, it tries to path
+to the closest opponent. If it still couldn't, makes the npc walk randomly vaguely towards the
+opponent and then tries again in the next cycle. A failure count is added in this case.
+
+Right now, the actor is either approaching or is close enough to its opponent that it can attack.
+However, before performing an aggressive action (strike, fire, summon, turn invisible), the actor
+needs to "build up initiative", which is tracked by the variable `dex_points`. An
+actor's `dex_points` starts at 0. The npc's dexterity stat is added to `dex_points` until a
 hardcoded value of 30 (`dex_to_attack`) is reached. Before that, no attacks can occur. If an attack
 goes through, 30 is removed from the accumulated dex, so any excess value carries over to the next "
 turn".
@@ -208,10 +261,55 @@ In other words, dexterity controls how quickly an actor can attack. A dex value 
 attack every other turn. If the npc's dex is 29, the actor only attacks after 3 initial turns, and
 then the accumulated `dex_points` lets it attack every other turn. Only after **59** turns its
 excess points are spent and the npc will have to build up points for 3 turns again, and attack on
-turn 62. If the npc's dex is 15, this means it will always attack once every 3 turns. A dex attribute of 1 is comical. The npc will stare at the target for quite a while until they manage to build up an attack.
+turn 62. If the npc's dex is 15, this means it will always attack once every 3 turns. A dex
+attribute of 1 is comical. The npc will stare at the target for quite a while until they manage to
+build up an attack.
 
+I've... spent way more time trying to illustrate this relatively inconsequential aspect of combat than I should have. Here's a few graphs:
 
+How many attacks can be performed given a fixed number of turns. Notice how, for short battles, the
+number of attacks is the same for relatively wide ranges of dex values. Only for really long battles
+do we see a clear trend favoring higher dex values.
 
+![Number of attacks for n turns](/assets/img/exult_study/Number_of_attacks_for_n_turns.png)
+
+Here we can see how many turns are required to perform a specific number of attacks. Notice the 
+logarithmic scale in the y axis. For absurdly low dex values, it takes *ages* to perform an attack. 
+Note also how 30 dex is favored, especially for shorter battles.
+
+![Number of turns for n attacks](/assets/img/exult_study/Number_of_turns_for_n_attacks.png)
+
+Last we can see a visualization of attack frequency and the role of the leftover `dex_points` on each turn.
+Here, an attack being performed in a turn is indicated by a peak. The closer the peaks, the faster are
+the attacks coming. Notice how sometimes there's 3 turn gaps, then 2 turn gaps, then 1 turn gaps and finally
+at 30 dex, there are no gaps — an attack goes through every other turn.
+
+![Hit frequency visualization for 30 turns](/assets/img/exult_study/hit_frequency_visualization_after_31_turns.webp)
+
+You might be wondering how long a turn lasts. To test this, I went to the Trinsic stables and modified
+the Avatar's stats to 1 STR and varying DEX values. Then, I modified the game engine to print out
+the current state and the game's tick number at that instant (1 tick is 1 millisecond since the game
+started running). I then attacked the horse and noted down how long between I started "charging up" and
+I finally performed the attack animation. The speed the game runs depends on the set fps, so I did vary the
+fps values also. Here's the results.
+
+First, we see how long it takes to start a strike. This is calculated from the moment I double click
+the horse to induce the attack (and initiative starts building up) to the moment the Avatar decides
+to hit the enemy. As expected, this time depends on the fps and roughly half the fps leads to a
+delay twice as long. I've measured these a few times each and noticed there's a variation in how
+long it takes to hit the target, and this increases at lower dex and lower fps. Nevertheless, the
+highest standard deviation I found was 80 ticks, or 0.08 seconds. Imperceptible in normal
+circumstances.
+
+![Hit timings](/assets/img/exult_study/times_lim.png)
+
+If we take the timing at 30 dex and consider this 2 turns, we can rescale this plot and compare to
+our previous result. This is what we get. Note how the actual number of turns to attack varies between
+fps. I don't know the exact cause of this, but I guess my assumptions might be too simplistic.
+
+![Measured and theoretical number of turns](/assets/img/exult_study/turns.png)
+
+CONTINUE HERE
 
 ### Differences between weapons types and magic
 
@@ -223,7 +321,7 @@ that, and which I could loot and use for a bit. However, these items have a qual
 specifies their number of uses, such as wands. For example, Aram-dol has two spells equipped, one
 with 99 uses and another with 2. Good luck surviving 99 casts of some spell.
 
-![Mage inventory](/assets/img/exult_mage_items.PNG)
+![Mage inventory](/assets/img/exult_study/exult_mage_items.PNG)
 
 -----------
 
