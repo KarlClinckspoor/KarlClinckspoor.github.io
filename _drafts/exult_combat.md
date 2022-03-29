@@ -16,17 +16,7 @@ TASKS:
 TODO: Add some traces to double check if it's only party members that give up combat and return to
 the previous schedule
 
-DONE: Check if npc spells have a set number of uses. ExultStudio can be useful for this.
-
 TODO: Check all notes in the text.
-
-DONE: Check if random mages spawn with spells equipped.
-
-DONE: Do more testing here and apply some prints to random enemies spawned, e.g, from eggs. Do they
-spawn in patrol?
-- No! Many normal enemies spawn in combat already. They never left the combat state and kept failing
-  repeatedly. Still need to dive a bit deeper to see why they aren't giving up.
-- Some humanoids did spawn in patrol though (pirate and mages)
 
 I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out how
 combat works. I really enjoy watching/reading deep dives into game mechanics and thought,
@@ -262,10 +252,11 @@ attack every other turn. If the npc's dex is 29, the actor only attacks after 3 
 then the accumulated `dex_points` lets it attack every other turn. Only after **59** turns its
 excess points are spent and the npc will have to build up points for 3 turns again, and attack on
 turn 62. If the npc's dex is 15, this means it will always attack once every 3 turns. A dex
-attribute of 1 is comical. The npc will stare at the target for quite a while until they manage to
-build up an attack.
+attribute of 1 is comical. The npc will stare at the target for quite a while until they attempt to
+raise their arms to attack.
 
-I've... spent way more time trying to illustrate this relatively inconsequential aspect of combat than I should have. Here's a few graphs:
+I've... spent way more time trying to illustrate this relatively inconsequential aspect of combat 
+than I should have. You can skip to the next section of you want. Here's a few graphs:
 
 How many attacks can be performed given a fixed number of turns. Notice how, for short battles, the
 number of attacks is the same for relatively wide ranges of dex values. Only for really long battles
@@ -309,7 +300,49 @@ fps. I don't know the exact cause of this, but I guess my assumptions might be t
 
 ![Measured and theoretical number of turns](/assets/img/exult_study/turns.png)
 
-CONTINUE HERE
+#### Starting a strike
+
+Now that the npc has finally built its dexterity, it can perform an offensive action. If the npc can
+turn invisible and it isn't invisible, there's a INT/300 chance of it turning invisible (so 30 int 
+means 10% of turning; 15 INT means 5% of turning). Then, the npc checks if it can summon, and the chance
+is INT/600, so half of invis. In each case, 30 is removed from `dex_points`. If none of these conditions
+is met (most common situation), the function `start_strike` is called (`combat.cc:820`).
+
+This function gets the weapon/monster reach and determined if the npc is too far away. If it is, tries
+to approach it and exits. Then it checks if it's using a ranged weapon or similar and if it's out of
+charges/ammo/reagents. If so, tries to swap for its next best weapon and the npc goes back to approaching.
+Otherwise, its state changes to `fire`. Otherwise, it's a melee weapon (that doesn't have those problems),
+so the state changed to `strike`.
+
+Then the npc tries to check if there's a straight line of fire between the npc to its opponent. If not,
+reverts to the approach state.
+
+If none of those pesky conditions changed the npc's state, there's a 1/20 chance of yelling a taunt
+and finally `dex_points` is decremented.
+
+We're now back to `now_what` with the state either `strike` or `fire`. Both cases work similarly. 
+First, they revert the state back to `approach` (so the dex buildup restarts), then set up some frame
+information (funny note, slimes and sea serpents are considered to have "strange movement", so they
+receive special treatment here) and finally the target is attacked by calling the function 
+`attack_target` (`combat.cc:929`).
+
+Again, this function does some checking for dead combatants, lack of ammo, insufficient range, etc. 
+Then, if the weapon uses charges and there's charges to be used, uses up the charges and, if it's
+depleted, deals with it, and requests a new weapon. If it's a ranged weapon, decrements the ammo 
+available and if it was a thrown weapon, tries to ready a new one or waits for it to return (boomerang).
+
+Now here's the interesting part, where the function calculates if the attack goes through or not. 
+A comparison is made between the (adjusted) attacker's combat stat and the base defender's
+combat stat. The attacker's combat is increased by 3 if the weapon or ammo has the lucky property
+(no such benefit for the defender). Then, bias is applied to the attack stat.
+
+Bias is something introduced by Exult, and it's known as Combat difficulty. This ranged from -3 (easiest)
+to +3 (hardest) in steps of 1, 0 being default. Twice the difficulty is either added or subtracted from
+the attacker's combat stat (for a max of +/- 6). In the easier settings, party members receive a boost
+in attack and hostiles receive a penalty in attack. In the harder settings, the opposite happens. I'll
+show later how this affects the hit probabilities.
+
+Ranged and melee weapons differ slightly here. CONTINUE HERE.
 
 ### Differences between weapons types and magic
 
