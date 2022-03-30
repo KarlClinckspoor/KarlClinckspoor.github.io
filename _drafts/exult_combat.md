@@ -16,6 +16,8 @@ TASKS:
 TODO: Add some traces to double check if it's only party members that give up combat and return to
 the previous schedule
 
+TODO: Triple-Check if one npc protecting another increases defense.
+
 TODO: Check all notes in the text.
 
 I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out how
@@ -342,7 +344,37 @@ the attacker's combat stat (for a max of +/- 6). In the easier settings, party m
 in attack and hostiles receive a penalty in attack. In the harder settings, the opposite happens. I'll
 show later how this affects the hit probabilities.
 
-Ranged and melee weapons differ slightly here. CONTINUE HERE.
+Ranged and melee weapons differ slightly here. Ranged/thrown weapons provide a bonus of 6 to the 
+attack value. Then, if it's a poor thrown weapon (think improvised weapons), attack value is reduced
+by the distance. A good thrown weapon (think more specialized weapons), the penalty is half the distance.
+I guess these exist to reflect that it's harder for the defender to protect against a fast moving arrow,
+but it's easier to deflect slower moving weapon.
+
+Then, a new projectile effect is created, which carries the attacker, target, weapon, projectile and 
+attack value. The comments say this is to prevent the attacker from having its combat lowered
+during the projectile flight (infinitesimal chance I think, but they probably have a good reason).
+The attack itself is processed somewhere else entirely, in `effects.cc:697 Projectile_effect::handle_event`.
+This function deals with the details of missile attacks, like rotation, speed, if the ammo drops, 
+if an explosion should occur, if it's homing, if the projectile returns (boomerang), if the target
+moved/teleported away, and, of special interest it calls `try_to_hit`. We'll deal with it together
+with melee weapons. 
+
+Going back to `Combat_schedule::attack_target`. The case for ranged weapons always returns `true`, 
+meaning the game thinks it *hit*, but the npc just fired the weapon. Melee weapons are a bit simpler.
+The function checks if the weapon has the `autohit` property and if the game is in god mode. In god
+mode, you always hit the targets, but they never hit you, and this overrides `autohit`. Then, `try_to_hit`
+is called. The current function deals with some minor stuff and returns `true` if `try_to_hit` was true,
+otherwise returns `false`.
+
+#### Trying to hit
+
+We're now in another file entirely, since `try_to_hit` depends on what type of entity the npc is
+attacking. In this case, it's actors, so we're specifically in `actors.cc:3976 Actor::try_to_hit`.
+This function handles the defense value of the defender, `defval` and compares it to the attacker's
+attack value (after all those adjustments). `defval` is simply the defender's combat stat. If it's
+under the *protection* spell, its defense is increased by 3. CONTINUE HERE.
+
+TODO: Triple-check if one npc protecting another also affects this.
 
 ### Differences between weapons types and magic
 
