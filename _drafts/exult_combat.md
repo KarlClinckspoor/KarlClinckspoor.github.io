@@ -5,8 +5,8 @@ description: A primer on how combat works in Exult
 author: Karl Jan Clinckspoor
 
 tags:
-    - games
-    - ultima
+    - games 
+    - ultima 
     - c++
 
 ---
@@ -18,7 +18,11 @@ the previous schedule
 
 TODO: Triple-Check if one npc protecting another increases defense.
 
+TODO: Check if heatmaps instead of contour is better to represent the probabilities. Also, check if
+putting numbers in the heatmaps is more didactic.
+
 TODO: Check all notes in the text.
+
 
 I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out how
 combat works. I really enjoy watching/reading deep dives into game mechanics and thought,
@@ -193,8 +197,8 @@ I'll discuss in the next section.
 
 If the schedule was just created, an enemy died/turned invisible, we need to approach
 it (`combat.cc:616 approach_foe`). If there's no opponents, it tries to find a foe
-`combat.cc:445 find_foe`. And `find_foe` calls `find_opponents`. It's quite a rabbit hole for a seeminly
-simple function.
+`combat.cc:445 find_foe`. And `find_foe` calls `find_opponents`. It's quite a rabbit hole for a
+seeminly simple function.
 
 In summary, npcs keep and regularly update a list of possible opponents. As the enemies are
 defeated, they are removed from the list. After all are defeated, npcs consider unconscious enemies
@@ -208,9 +212,9 @@ invisible enemies are ignored if the npc can't see invisible. The range is 9 chu
 If you have `combat_trace` on, you'll see a bunch of `X pushed back (number) y`. Here, `pushed back`
 means "added to the end of the list".
 
-After having found a list of possible opponents, which one that's selected depends on the npc's attack mode. 
-I personally always left all party members in `nearest` and just mowed through all resistance. Here's what
-the attack modes do in Exult.
+After having found a list of possible opponents, which one that's selected depends on the npc's
+attack mode. I personally always left all party members in `nearest` and just mowed through all
+resistance. Here's what the attack modes do in Exult.
 
 * *weakest* targets the opponent with the smallest *strength* status.
 * *strongest* targets the opponent with the largest *strength* status.
@@ -229,9 +233,10 @@ teleport close to the target, there's a 1/4 chance of doing so. Before that thou
 chain of boolean operations is made to check if the npc should run away. Let's break it down:
 
 * If it isn't a monster and, if it is, it can die (??) AND
-  * The attack mode is flee OR
-    * the attack mode isn't berserk AND
-      * the enemy can move (?) AND it isn't the main actor (Avatar) and the npc's health is less than 3
+    * The attack mode is flee OR
+        * the attack mode isn't berserk AND
+            * the enemy can move (?) AND it isn't the main actor (Avatar) and the npc's health is
+              less than 3
 
 Only if all these conditions are met, the npc runs away. Phew!
 
@@ -257,7 +262,7 @@ turn 62. If the npc's dex is 15, this means it will always attack once every 3 t
 attribute of 1 is comical. The npc will stare at the target for quite a while until they attempt to
 raise their arms to attack.
 
-I've... spent way more time trying to illustrate this relatively inconsequential aspect of combat 
+I've... spent way more time trying to illustrate this relatively inconsequential aspect of combat
 than I should have. You can skip to the next section of you want. Here's a few graphs:
 
 How many attacks can be performed given a fixed number of turns. Notice how, for short battles, the
@@ -266,25 +271,25 @@ do we see a clear trend favoring higher dex values.
 
 ![Number of attacks for n turns](/assets/img/exult_study/Number_of_attacks_for_n_turns.png)
 
-Here we can see how many turns are required to perform a specific number of attacks. Notice the 
-logarithmic scale in the y axis. For absurdly low dex values, it takes *ages* to perform an attack. 
+Here we can see how many turns are required to perform a specific number of attacks. Notice the
+logarithmic scale in the y axis. For absurdly low dex values, it takes *ages* to perform an attack.
 Note also how 30 dex is favored, especially for shorter battles.
 
 ![Number of turns for n attacks](/assets/img/exult_study/Number_of_turns_for_n_attacks.png)
 
-Last we can see a visualization of attack frequency and the role of the leftover `dex_points` on each turn.
-Here, an attack being performed in a turn is indicated by a peak. The closer the peaks, the faster are
-the attacks coming. Notice how sometimes there's 3 turn gaps, then 2 turn gaps, then 1 turn gaps and finally
-at 30 dex, there are no gaps — an attack goes through every other turn.
+Last we can see a visualization of attack frequency and the role of the leftover `dex_points` on
+each turn. Here, an attack being performed in a turn is indicated by a peak. The closer the peaks,
+the faster are the attacks coming. Notice how sometimes there's 3 turn gaps, then 2 turn gaps, then
+1 turn gaps and finally at 30 dex, there are no gaps — an attack goes through every other turn.
 
 ![Hit frequency visualization for 30 turns](/assets/img/exult_study/hit_frequency_visualization_after_31_turns.webp)
 
-You might be wondering how long a turn lasts. To test this, I went to the Trinsic stables and modified
-the Avatar's stats to 1 STR and varying DEX values. Then, I modified the game engine to print out
-the current state and the game's tick number at that instant (1 tick is 1 millisecond since the game
-started running). I then attacked the horse and noted down how long between I started "charging up" and
-I finally performed the attack animation. The speed the game runs depends on the set fps, so I did vary the
-fps values also. Here's the results.
+You might be wondering how long a turn lasts. To test this, I went to the Trinsic stables and
+modified the Avatar's stats to 1 STR and varying DEX values. Then, I modified the game engine to
+print out the current state and the game's tick number at that instant (1 tick is 1 millisecond
+since the game started running). I then attacked the horse and noted down how long between I
+started "charging up" and I finally performed the attack animation. The speed the game runs depends
+on the set fps, so I did vary the fps values also. Here's the results.
 
 First, we see how long it takes to start a strike. This is calculated from the moment I double click
 the horse to induce the attack (and initiative starts building up) to the moment the Avatar decides
@@ -297,74 +302,78 @@ circumstances.
 ![Hit timings](/assets/img/exult_study/times_lim.png)
 
 If we take the timing at 30 dex and consider this 2 turns, we can rescale this plot and compare to
-our previous result. This is what we get. Note how the actual number of turns to attack varies between
-fps. I don't know the exact cause of this, but I guess my assumptions might be too simplistic.
+our previous result. This is what we get. Note how the actual number of turns to attack varies
+between fps. I don't know the exact cause of this, but I guess my assumptions might be too
+simplistic.
 
 ![Measured and theoretical number of turns](/assets/img/exult_study/turns.png)
 
 #### Starting a strike
 
 Now that the npc has finally built its dexterity, it can perform an offensive action. If the npc can
-turn invisible and it isn't invisible, there's a INT/300 chance of it turning invisible (so 30 int 
-means 10% of turning; 15 INT means 5% of turning). Then, the npc checks if it can summon, and the chance
-is INT/600, so half of invis. In each case, 30 is removed from `dex_points`. If none of these conditions
-is met (most common situation), the function `start_strike` is called (`combat.cc:820`).
+turn invisible and it isn't invisible, there's a INT/300 chance of it turning invisible (so 30 int
+means 10% of turning; 15 INT means 5% of turning). Then, the npc checks if it can summon, and the
+chance is INT/600, so half of invis. In each case, 30 is removed from `dex_points`. If none of these
+conditions is met (most common situation), the function `start_strike` is called (`combat.cc:820`).
 
-This function gets the weapon/monster reach and determined if the npc is too far away. If it is, tries
-to approach it and exits. Then it checks if it's using a ranged weapon or similar and if it's out of
-charges/ammo/reagents. If so, tries to swap for its next best weapon and the npc goes back to approaching.
-Otherwise, its state changes to `fire`. Otherwise, it's a melee weapon (that doesn't have those problems),
-so the state changed to `strike`.
+This function gets the weapon/monster reach and determined if the npc is too far away. If it is,
+tries to approach it and exits. Then it checks if it's using a ranged weapon or similar and if it's
+out of charges/ammo/reagents. If so, tries to swap for its next best weapon and the npc goes back to
+approaching. Otherwise, its state changes to `fire`. Otherwise, it's a melee weapon (that doesn't
+have those problems), so the state changed to `strike`.
 
-Then the npc tries to check if there's a straight line of fire between the npc to its opponent. If not,
-reverts to the approach state.
+Then the npc tries to check if there's a straight line of fire between the npc to its opponent. If
+not, reverts to the approach state.
 
 If none of those pesky conditions changed the npc's state, there's a 1/20 chance of yelling a taunt
 and finally `dex_points` is decremented.
 
-We're now back to `now_what` with the state either `strike` or `fire`. Both cases work similarly. 
-First, they revert the state back to `approach` (so the dex buildup restarts), then set up some frame
-information (funny note, slimes and sea serpents are considered to have "strange movement", so they
-receive special treatment here) and finally the target is attacked by calling the function 
+We're now back to `now_what` with the state either `strike` or `fire`. Both cases work similarly.
+First, they revert the state back to `approach` (so the dex buildup restarts), then set up some
+frame information (funny note, slimes and sea serpents are considered to have "strange movement", so
+they receive special treatment here) and finally the target is attacked by calling the function
 `attack_target` (`combat.cc:929`).
 
-Again, this function does some checking for dead combatants, lack of ammo, insufficient range, etc. 
+Again, this function does some checking for dead combatants, lack of ammo, insufficient range, etc.
 Then, if the weapon uses charges and there's charges to be used, uses up the charges and, if it's
-depleted, deals with it, and requests a new weapon. If it's a ranged weapon, decrements the ammo 
-available and if it was a thrown weapon, tries to ready a new one or waits for it to return (boomerang).
+depleted, deals with it, and requests a new weapon. If it's a ranged weapon, decrements the ammo
+available and if it was a thrown weapon, tries to ready a new one or waits for it to return (
+boomerang).
 
-Now here's the interesting part, where the function calculates if the attack goes through or not. 
-A comparison is made between the (adjusted) attacker's combat stat and the base defender's
-combat stat. The attacker's combat is increased by 3 if the weapon or ammo has the lucky property
+Now here's the interesting part, where the function calculates if the attack goes through or not. A
+comparison is made between the (adjusted) attacker's combat stat and the base defender's combat
+stat. The attacker's combat is increased by 3 if the weapon or ammo has the lucky property
 (no such benefit for the defender). Then, bias is applied to the attack stat.
 
-Bias is something introduced by Exult, and it's known as Combat difficulty. This ranged from -3 (easiest)
-to +3 (hardest) in steps of 1, 0 being default. Twice the difficulty is either added or subtracted from
-the attacker's combat stat (for a max of +/- 6). In the easier settings, party members receive a boost
-in attack and hostiles receive a penalty in attack. In the harder settings, the opposite happens. I'll
-show later how this affects the hit probabilities.
+Bias is something introduced by Exult, and it's known as Combat difficulty. This ranged from -3 (
+easiest)
+to +3 (hardest) in steps of 1, 0 being default. Twice the difficulty is either added or subtracted
+from the attacker's combat stat (for a max of +/- 6). In the easier settings, party members receive
+a boost in attack and hostiles receive a penalty in attack. In the harder settings, the opposite
+happens. I'll show later how this affects the hit probabilities.
 
-Ranged and melee weapons differ slightly here. Ranged/thrown weapons provide a bonus of 6 to the 
+Ranged and melee weapons differ slightly here. Ranged/thrown weapons provide a bonus of 6 to the
 attack value. Then, if it's a poor thrown weapon (think improvised weapons), attack value is reduced
-by the distance. A good thrown weapon (think more specialized weapons), the penalty is half the distance.
-I guess these exist to reflect that it's harder for the defender to protect against a fast moving arrow,
-but it's easier to deflect slower moving weapon.
+by the distance. A good thrown weapon (think more specialized weapons), the penalty is half the
+distance. I guess these exist to reflect that it's harder for the defender to protect against a fast
+moving arrow, but it's easier to deflect slower moving weapon.
 
-Then, a new projectile effect is created, which carries the attacker, target, weapon, projectile and 
-attack value. The comments say this is to prevent the attacker from having its combat lowered
-during the projectile flight (infinitesimal chance I think, but they probably have a good reason).
-The attack itself is processed somewhere else entirely, in `effects.cc:697 Projectile_effect::handle_event`.
-This function deals with the details of missile attacks, like rotation, speed, if the ammo drops, 
-if an explosion should occur, if it's homing, if the projectile returns (boomerang), if the target
-moved/teleported away, and, of special interest it calls `try_to_hit`. We'll deal with it together
-with melee weapons. 
+Then, a new projectile effect is created, which carries the attacker, target, weapon, projectile and
+attack value. The comments say this is to prevent the attacker from having its combat lowered during
+the projectile flight (infinitesimal chance I think, but they probably have a good reason). The
+attack itself is processed somewhere else entirely,
+in `effects.cc:697 Projectile_effect::handle_event`. This function deals with the details of missile
+attacks, like rotation, speed, if the ammo drops, if an explosion should occur, if it's homing, if
+the projectile returns (boomerang), if the target moved/teleported away, and, of special interest it
+calls `try_to_hit`. We'll deal with it together with melee weapons.
 
-Going back to `Combat_schedule::attack_target`. The case for ranged weapons always returns `true`, 
-meaning the game thinks it *hit*, but the npc just fired the weapon. Melee weapons are a bit simpler.
-The function checks if the weapon has the `autohit` property and if the game is in god mode. In god
-mode, you always hit the targets, but they never hit you, and this overrides `autohit`. Then, `try_to_hit`
-is called. The current function deals with some minor stuff and returns `true` if `try_to_hit` was true,
-otherwise returns `false`.
+Going back to `Combat_schedule::attack_target`. The case for ranged weapons always returns `true`,
+meaning the game thinks it *hit*, but the npc just fired the weapon. Melee weapons are a bit
+simpler. The function checks if the weapon has the `autohit` property and if the game is in god
+mode. In god mode, you always hit the targets, but they never hit you, and this overrides `autohit`.
+Then, `try_to_hit`
+is called. The current function deals with some minor stuff and returns `true` if `try_to_hit` was
+true, otherwise returns `false`.
 
 #### Trying to hit
 
@@ -372,9 +381,38 @@ We're now in another file entirely, since `try_to_hit` depends on what type of e
 attacking. In this case, it's actors, so we're specifically in `actors.cc:3976 Actor::try_to_hit`.
 This function handles the defense value of the defender, `defval` and compares it to the attacker's
 attack value (after all those adjustments). `defval` is simply the defender's combat stat. If it's
-under the *protection* spell, its defense is increased by 3. CONTINUE HERE.
+under the *protection* spell, its defense is increased by 3 which is, all things considered, quite
+good. Then, this function calls `actors.cc:3773 Actor::roll_to_win`.
 
-TODO: Triple-check if one npc protecting another also affects this.
+`roll_to_win` rolls a 30 sided die (technically a die from 0 to 29, but I'll treat it as 1-30). If
+it's a "critical miss" (1), then the attack missed. If it's a "critical hit" (30), the attack hit.
+For intermediary values, the roll + attack - defense has to greater or equal to half the number of
+sides minus 1 (14). In terms of probability, there's always a 3.3% (1/30) chance of hitting, a
+3.3% (1/30) chance of missing and a `(15 + defense - attack + 1)/30` chance of hitting.
+
+This means for combatants with equal combat stats, the attacker is always *slightly* biased towards
+hitting. To better visualize how this works, and to show how bias affects the probabilities, I've
+prepared some hit probability maps containing simulations and theoretical values of hit
+probabilities, from game difficulty -3 to +3. These consider you're attacking (i.e. party member) 
+a random monster. 
+
+![Difficulty 0](/assets/img/exult_study/hit_probability_map_dif0.png)
+
+| ![Difficulty -3](/assets/img/exult_study/hit_probability_map_dif-3.png) | ![Difficulty -2](/assets/img/exult_study/hit_probability_map_dif-2.png) | ![Difficulty -1](/assets/img/exult_study/hit_probability_map_dif-1.png) |
+|-------------------------------------------------------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------|
+| ![Difficulty +3](/assets/img/exult_study/hit_probability_map_dif3.png) | ![Difficulty +2](/assets/img/exult_study/hit_probability_map_dif2.png)  | ![Difficulty 1](/assets/img/exult_study/hit_probability_map_dif1.png)   |
+
+We can see when difficult is 0, the 50% hit probability is slightly offset downwards, indicating the
+green-yellowish area (>50% hit prob) is bigger. Then, as you go from -3 to +3 (easy to hard), the
+yellow region shrinks considerably. Since the bias is symmetrical, if you want to know how probably
+it is for a monster to attack your party, you just need to consider the opposite sign graphs (i.e. a
+monster to-hit map at the hardest difficulty is the -3 map, and so on.)
+
+Note the combat stats are integers (there's no 14.5 attack), so these are not continuous probabilities.
+Yet, I found these maps pretty.
+
+
+
 
 ### Differences between weapons types and magic
 
