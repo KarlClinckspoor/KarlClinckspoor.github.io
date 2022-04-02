@@ -8,7 +8,6 @@ tags:
     - games 
     - ultima 
     - c++
-
 ---
 
 TASKS:
@@ -396,20 +395,13 @@ prepared some hit probability maps containing simulations and theoretical values
 probabilities, from game difficulty -3 to +3. These consider you're attacking (i.e. party member) 
 a random monster. 
 
-![Difficulty 0](/assets/img/exult_study/hit_probability_map_dif0.png)
-
-| ![Difficulty -3](/assets/img/exult_study/hit_probability_map_dif-3.png) | ![Difficulty -2](/assets/img/exult_study/hit_probability_map_dif-2.png) | ![Difficulty -1](/assets/img/exult_study/hit_probability_map_dif-1.png) |
-|-------------------------------------------------------------------------|-------------------------------------------------------------------------|-------------------------------------------------------------------------|
-| ![Difficulty +3](/assets/img/exult_study/hit_probability_map_dif3.png) | ![Difficulty +2](/assets/img/exult_study/hit_probability_map_dif2.png)  | ![Difficulty 1](/assets/img/exult_study/hit_probability_map_dif1.png)   |
+{%include exult_study/plotly_figs.html %}
 
 We can see when difficult is 0, the 50% hit probability is slightly offset downwards, indicating the
 green-yellowish area (>50% hit prob) is bigger. Then, as you go from -3 to +3 (easy to hard), the
 yellow region shrinks considerably. Since the bias is symmetrical, if you want to know how probably
 it is for a monster to attack your party, you just need to consider the opposite sign graphs (i.e. a
 monster to-hit map at the hardest difficulty is the -3 map, and so on.)
-
-Note the combat stats are integers (there's no 14.5 attack), so these are not continuous probabilities.
-Yet, I found these maps pretty.
 
 
 
