@@ -17,11 +17,12 @@ the previous schedule
 
 TODO: Triple-Check if one npc protecting another increases defense.
 
-TODO: Check if heatmaps instead of contour is better to represent the probabilities. Also, check if
-putting numbers in the heatmaps is more didactic.
-
 TODO: Check all notes in the text.
 
+TODO: Make a flowchart
+
+TODO: Review the entire text and rewrite entire section so they follow the code less, but more of
+        the logic
 
 I decided to peek into the source code of [Exult](https://github.com/exult/exult) and figure out how
 combat works. I really enjoy watching/reading deep dives into game mechanics and thought,
@@ -38,9 +39,76 @@ A few disclaimers before we start:
 * I'm not well versed in C++, so it's possible I grossly misread/misinterpreted something. Please
   point it out! However, I'm simplifying some of the code for conciseness, e.g., many if statements
   are quite complex, and I'll only mention the most relevant aspects at each part.
-* Anything pertaining usecode is, at this moment, a complete black box to me. I didn't get into it
-  in the least bit.
+* I've decided to forego a bit the "blow-by-blow" description of what each function does to a more
+  general approach, to improve the readability of this text.
 * I'm using the master branch on github, commit 4df38f34, if you want to accompany some parts.
+
+## TLDR
+
+* Combat is a type of Schedule, which controls every action an npc performs. Other schedules include
+  baking, serving food, etc. Aggressive actions do not happen outside of combat (save for usecode).
+* To enter combat, the npc needs
+  * Spawn in the combat schedule
+  * Be in a patrol schedule and find an NPC with a clashing alignment
+  * Be in the Avatar's party and have the UI switch to combat mode
+  * Be attacked
+* There are 4 npc alignments: neutral (0), good (1), evil (2), chaotic (3). Evil is aggressive to
+  neutral and good, chaotic is aggressive to all, good is aggressive to evil. Good is mostly the Avatar's
+  party. Evil are mostly enemies, but some "peaceful" npc also spawn as evil.
+* Every schedule alternates between animating an `action` and determining what action to do in
+  a `now_what`.
+* The combat schedule is a finite state machine with the states `initial`, `approach`, `strike`,
+  `fire`, `wait_return`.
+* Every cycle in the `approach` state (which I'll call a "turn"), an internal counter
+  called `dex_points` increases based on the npc's dex attribute. When this reaches `dex_to_attack`,
+  which is 30, it can change its state from `approach` to `strike` or `fire`. The difference between
+  the latter 2 is small, mostly having to deal with creating a projectile or striking directly.
+* To determine if an attack hits, the attacker's combat attribute `attval` is compared to the
+  defender's `defval`. 
+  * `attval` is altered by the game difficulty (up to +/- 6 combat), the weapon type (good thrown,
+      poor thrown, ranged) and the range in the case of thrown weapons.
+  * `defval` is only affected by the Protection spell status, which
+    increases `defval` by 3.
+  * the probability of hitting is `(15 + defval - attval + 1)/30`. However, there's always a 1/30
+    chance of hitting and a 1/30 chance of missing.
+* When an attack hits, the hit points lost and other effects are calculated.
+  * Attacks can have damage types (normal, fire, magic, lightning, ethereal, sonic) and powers (sleep,
+      charm, curse, poison, paralyze, magebane and two extra).
+  * If the weapon's damage is 127, it's an instakill and no further checks are performed.
+  * The weapon/monster's attack value is the base damage.
+  * Game difficulty adds/removes damage depending on the bias.
+  * A random value from 1 up to a third of the attacker's strength is added to the base damage.
+  * A random value from 1 up to the weapon's attack rating is added to the base damage, except
+    lightning weapons.
+  * An npc's base armor value is summed with every armor item in its inventory to give a final armor value.
+  * A number between 1 and the total armor value is removed from the base damage.
+  * Lightning, ethereal and sonic damage ignore armor.
+  * If the npc is immune to that specific damage type, damage is set to zero. If the monster can't die,
+    the same is made.
+  * If the npc is vulnerable to that specific damage type, damage is multiplied by 2.
+* Health is considered in the following manner:
+  * Max health is equal to strength.
+  * If health falls to or below 0, the npc is knocked unconscious.
+  * If the health falls below 1/3 of its max health, it dies.
+  * Some npc's have a `tournament flag` on, which hands off health reduction calculations to the usecode
+    machine, meaning they have special treatment.
+  * An npc is considered defeated if it's knocked unconscious, and exp is calculated.
+* Exp is calculated in the following manner:
+  * If the npc was unconscious when defeated, exp is set to zero.
+  * The combat, strength, (dex+1)/3, int/5, monster base xp, total armor protection value, worn
+    weapon's base xp with some range bonus and monster immunity/vulnerability count are all summed.
+  * This value divided by 2 is the total exp gained.
+  * The current level can be calculated with `1 + log2(total exp / 50)`. Every level up, 3 training
+    points are added.
+* Weapon powers are processed by:
+  * If the npc was under the protection spell, no powers can affect it, even magebane.
+  * To apply an effect, a check is made comparing the attacker's intelligence and the defenders
+    strength (Poison, paralyze) or intelligence (curse, charm, sleep)
+  * Magebane always works. It sets the target's mana to zero and removes all spell "weapons" from the npc.
+* Combat ends when:
+  * The UI is changed.
+  * All enemies are dead and the npc failed to find an enemy several times.
+  * The npc despawns/becomes dormant.
 
 ## Structure
 
@@ -453,56 +521,108 @@ extra/less armor per difficulty.
 
 After this calculation, the final damage value is calculated. A random number between 1 and the
 total armor is removed from the damage calculated so far. This means there's no difference between
-armor pieces, e.g., plate leggings won't protect you better from rats than a metal helmet. If
-perchance damage was less or equal to zero, plays that a metal clang sound, but flashes the
-attacked's outline in red, and makes it fight back. And finally, we reach the point where health is
-reduced, in `actors.cc:2721 reduce_health`. Don't forget about exp, since that's being carried over 
-for quite a while now.
+armor piece location, meaning you can have your head exposed all the time if you want. If the npc is
+paralyzed or unconscious and the damage was less than or equal to zero, damage received receives a
+bonus between 1 and the attacker's strength.
 
-CONTINUE HERE
+After all these considerations, if damage was less or equal to zero, plays that a metal clang sound,
+but flashes the attacked's outline in red, and makes it fight back. And finally, we reach the point
+where health is reduced, in `actors.cc:2721 reduce_health`. Don't forget about exp, since that's
+being carried over for quite a while now.
 
-It calls `figure_hit_points` and does some
-calculations for `combat_trace`. Moving on to `objs.cc:1500 figure_hit_points`, it gets the weapon
-used to attack, its damage, damage type () and if it
-explodes. If it uses ammo, its damage is added to the current weapon damage, and ammo can also make
-the attack explosive. The minimum damage is 1. Explosions are evaluated just like weapons, with the
-added visual effects (burst arrows count as explosions, for instance). Then, the actor's effective 
-strength is found and the function `.cc:1424 apply_damage` is called.
+Here in `reduce_health`, we check if the npc is already dead or if there's god mode on, and prevents
+any health reduction. Then, if the monster can't die or is immune to the attack type, makes it
+attack back and deals 0 damage. If the monster is vulnerable to the attack type, damage is
+multiplied by 2.
 
-This function 
+The game then calculates how much the npc's health would drop by subtracting the current hp by
+the damage (limited to -50 final health). There's some shenanigans with enemies with the tournament flag.
+From what I've searched, in SI there's a lot of npcs with this flag, meaning it's up to the usecode
+machine to allow or not the npc to be receive damage/die. The comments say 'no more pushover banes',
+which I have no idea what it means. Maybe some day I'll take a dive into the usecode files, but not now.
 
+Then the function checks if the npc can split (slimes). There's a 50% chance of splitting provided the npc
+wasn't vulnerable to the attack type.
 
-### Differences between weapons types and magic
+Finally the npc's health is reduced to the calculated value, and we check if the npc should die or
+if it was defeated (health goes below or equal to 0, and gets knocked out). An npc dies if its
+current health drops below a third of max health (which is equal to strength). After this, if the
+enemy was defeated, the exp value is calculated.
 
-Magic works different between enemies and the Avatar, who requires a spellbook. Spells are actually
-items they can equip and "throw" at you. This makes spellcasters especially dangerous. When killed,
-these items are removed from them so you can't access them natually. However, I distinctly remember
-a few jesters around the castle of the white dragon that spawned with death bolts or something like
-that, and which I could loot and use for a bit. However, these items have a quality level, which
-specifies their number of uses, such as wands. For example, Aram-dol has two spells equipped, one
-with 99 uses and another with 2. Good luck surviving 99 casts of some spell.
+#### Calculating EXP
+
+First, it checks if the npc wasn't unconscious when attacked. If it was, exp is **zero**, so don't
+go around murdering people in their sleep.
+
+Exp is calculated by adding several small contributions to a pool. First, exp is equal to the
+opponent's combat value, its strength, its (dex+1) / 3 and its intelligence / 5. Then, if it's a
+monster, it has a base xp value, which gets added to
+
+1. Combat stat
+2. Strength
+3. (Dex+1) / 3
+4. Intelligence / 5
+5. If monster, its base exp.
+6. Goes through all the npc's possessions and sums the armor protection values, the weapon's base xp
+   to the pool and a small bonus depending on the weapon type.
+   1. Melee weapons with range greater than 5, bonus exp is 2, if it's 4 or 5, bonus exp is 1, else it's 0. 
+   2. For poor thrown weapons, it's a fifth of the npc's combat value.
+   3. For good thrown weapons, it's a third of the npc's combat value.
+   4. If it's ranged, it's half the weapon's range.
+7. Exult does something slightly different here, and adds/removes 1 point for each vulnerability (-)
+   or immunity (+).
+
+Last, this exp pool is divided by 2, and that's the final exp value received by the defeat.
+
+#### Applying weapon powers
+
+After the damage was applied the weapon powers get applied. If the npc is protected 
+with the Protection spell, it's absolutely immune to any effects like poison, curse, charm, etc. I
+found that super interesting as I always thought this spell was pretty useless. If the game had a more
+tactical combat, I'm certain this spell would be used much more.
+
+These powers get applied by rolling the same 30 sided die for combat, but uses different stats. Only
+the attacker's intelligence is considered (if it doesn't have one, like a trap, it's set to 16).
+
+| Effect   | Attacker's attribute | Defender's attribute |
+|----------|----------------------|----------------------|
+| Poison   | Int                  | Str                  |
+| Curse    | Int                  | Int                  |
+| Charm    | Int                  | Int                  |
+| Sleep    | Int                  | Int                  |
+| Paralyze | Int                  | Str                  |
+| Magebane | -                    | -                    |
+
+Magebane always affects the victim. It acts by setting its mana to zero and collecting all the
+spells in the npc's inventory and removes them. In case you're confused by this, enemies don't
+require a spellbook to cast spells. Rather, they have spells are weapons they can fire a limited
+number of at enemies. If you manage to get one, you can use it too. This makes spellcasters
+especially dangerous. When killed, these items are removed from them so you can't access them
+natually. However, I distinctly remember a few jesters around the castle of the white dragon that
+spawned with death bolts or something like that, and which I looted and used for a bit. For example,
+Aram-dol has two spells equipped, one with 99 uses and another with 2. Good luck surviving 99 casts
+of some spell. If you have Exult Studio equipped, you can open an npc's inventory gump and see the
+spells. Here's an example of a mage located at an island to the south of Trinsic.
 
 ![Mage inventory](/assets/img/exult_study/exult_mage_items.PNG)
 
------------
+Last, this function calls the weapon's usecode functions, such as the weird `no_damage` power and any
+usecode functions specific for that weapon. 
 
-## Hit probabilities
+The attacker also receives the exp value at this point. If you're curious, your level is calculated
+as
+`1 + log2(total exp / 50)` (see `actors.h:490`). If you want to go the opposite way, you can
+use `25 * 2 ^ level`. Every level gives the npc 3 training points. I prepared two graphs with this info:
 
-## Damage calculations
+![Experience and level](/assets/img/exult_study/Experience.png)
 
---------------------
+![Experience and level, log scale](/assets/img/exult_study/Experience_log.png)
 
-That's why you don't find liches or mages, for instance, with reagents and spellbooks. When they
-die, the "magic"
-weapons are removed.
+#### Wrapping up and exiting combat
 
-When receiving damage, an npc's health is reduced. If it gets to zero or below, it's knocked
-unconscious. In this state, its dex is reduced to 0 (meaning it can't attack) and it is given less
-priority than conscious opponents.
-
-## Experience calculations
-
-## Final notes
+After dealing damage and getting the exp, the stack of function start returning one after the other
+and we're back in `Combat_schedule::now_what`. The npc struck the target, its `dex_points` got reset by 30,
+its state reverted back to `approach` so it can build up `dex_points` again.
 
 ## Appendices
 
@@ -561,193 +681,3 @@ Chaotics are Rabindrinath, Crusty (a jester in a hut in the goblin woods) and pe
 unnamed enemies
 
 Shoutout to the neutral nightmare in the dream world, SmithzHorse.
-
-## Damage calculations
-
-Quality dictates weapon charges, like wands.
-
-* Weapon have a few types of powers:
-    * sleep, charm, curse, poison, paralyze, magebane, unknown, no damage (puts Dragan to sleep,
-      see [here](https://ultima.fandom.com/wiki/Draygan))
-    * These appear to be a byte. Maybe `weapons.dat` is read like this?
-  > 00000000
-  > ||||||||
-  > |||||||sleep
-  > ||||||charm
-  > |||||curse
-  > ||||poison
-  > |||paralyze
-  > ||magebane
-  > |unknown
-  > draygan sleep, King's Savior flower
-* There's 6 types of damage.
-    * normal (0), fire(1), magic (2), lightning (3), ethereal (4), sonic (5)
-
-### From combat_ops.h - DONE
-
-* There's checks for paused, checks for difficulty (0 = normal, >0 = harder, <0 = easier). These can
-  be accessed from the menu!
-* There's two combat modes, original and keypause, with the latter using space as suspend/resume
-  combat. This really lets you direct attacks from specific party members to specific targets.
-* There's an option to show hit numbers? -- yes! That's actually an option in the menus.
-* What's charmed more difficult? - According to the manual, does this:
-    * In normal, Avatar can't be charmed. In the original, he could, but nothing would be changed.
-      In hard, charmed party members can't have their inventory accessed, and will continue to
-      attack even if combat is stopped.
-
-## Conclusions with code snippets
-
-### Get knocked out if health <= 0
-
-`actors.h (:487)`
-
-```c++
-bool is_knocked_out() const {
-	return get_property(static_cast<int>(health)) <= 0;
-}
-```
-
-### Dies if health < -1/3 str
-
-`actors.h (:483)`
-
-```c++
-	bool is_dying() const {     // Dead when health below -1/3 str.
-		return properties[static_cast<int>(health)] <
-		       -(properties[static_cast<int>(strength)] / 3);
-	}
-```
-
-### Finds best ammo based on its strength *and* remaining amount.
-
-* Find best ammo:
-    1. Starts with a value of -20 for strength.
-    2. Considers all objects (maximum of 50).
-    3. For every object:
-    1. Is it inside a locked chest? If yes, next.
-    2. Is it of the wrong ammo family? If yes, next
-    3. Finds ammo info, and if it's not available. Didn't understand.
-    4. Is it enough? (Triple crossbow?)
-    5. Calculates the strength with `ammo_info->get_base_strength`
-    6. Strength is balanced if there's little of the ammo (if there's less than 5 times what's
-       needed). If so, strength is divided by 3. If it's less than 10 times what's needed, strength
-       divided by 2.
-    7. Goes through everything until the best ammo is found.
-
-```c++
-Game_object *Actor::find_best_ammo(
-    int family,
-    int needed
-) {
-	Game_object *best = nullptr;
-	int best_strength = -20;
-	Game_object_vector vec;     // Get list of all possessions.
-	vec.reserve(50);
-	get_objects(vec, c_any_shapenum, c_any_qual, c_any_framenum);
-	for (auto *obj : vec) {
-		if (obj->inside_locked() || !In_ammo_family(obj->get_shapenum(), family))
-			continue;
-		const Ammo_info *ainf = obj->get_info().get_ammo_info();
-		if (!ainf)  // E.g., musket ammunition doesn't have it.
-			continue;
-		// Can't use it.
-		if (obj->get_quantity() < needed)
-			continue;
-		// Calc ammo strength.
-		int strength = ainf->get_base_strength();
-		// Favor those with more shots remaining.
-		if (obj->get_quantity() < 5 * needed)
-			strength /= 3;
-		else if (obj->get_quantity() < 10 * needed)
-			strength /= 2;
-		if (strength > best_strength) {
-			best = obj;
-			best_strength = strength;
-		}
-	}
-	return best;
-}
-
-
-```
-
-### The effective range is either melee or the missile weapon's own range. If it's a poor or good throwable, the distance is affected by the quality and attacker's stats, limited to 31.
-
-1. Starts with weapon info and reach (int).
-2. If it's less than 0 (i.e., -1), it uses the weapon's reach. If there's no weapon info, uses
-   monster's specific reach or the default reach.
-3. If (not uses), which means, if hand-hand or ranged, returns the weapon's reach.
-
-* Uses is, from `weaponinfo.h`:
-    * 0 if hand-hand, 1 of poor throwable, 2 if good throwable, 3 if missile firing
-
-4. If either a poor or good throwable, gets the strength and combat stats of the actor. Whichever is
-   higher is the current range. If it's a good thrown weapon, the range is multiplied by 2. If it's
-   lower than the reach, then it's replaced by reach, and if it's greater than 31 (units?), it's cut
-   to 31.
-
-```c++
-/**
- *  Get effective maximum range for weapon taking in consideration
- *  the actor's strength and combat.
- *  @param winf Pointer to weapon information of the current weapon,
- *  or null for no weapon.
- *  @param reach Weapon reach, or -1 to use weapon's.
- *  @return Weapon's effective range.
- */
-int Actor::get_effective_range(
-    const Weapon_info *winf,
-    int reach
-) const {
-	if (reach < 0) {
-		if (!winf) {
-			const Monster_info *minf = get_info().get_monster_info();
-			return minf ? minf->get_reach()
-			       : Monster_info::get_default()->get_reach();
-		}
-		reach = winf->get_range();
-	}
-	int uses = winf ? winf->get_uses() : static_cast<int>(Weapon_info::melee);
-	if (!uses || uses == Weapon_info::ranged)
-		return reach;
-	else {
-		int eff_range;
-		int str = get_effective_prop(static_cast<int>(Actor::strength));
-		int combat = get_effective_prop(static_cast<int>(Actor::combat));
-		if (str < combat)
-			eff_range = str;
-		else
-			eff_range = combat;
-		if (uses == Weapon_info::good_thrown)
-			eff_range *= 2;
-		if (eff_range < reach)
-			eff_range = reach;
-		if (eff_range > 31)
-			eff_range = 31;
-		return eff_range;
-	}
-}
-
-```
-
-## Some time calculations with dex to attack.
-
-Put Avatar in the Trinsic stables and ordered him to attack the horse. FPS=4. Lightning whip.
-
-See excel spreadsheet
-
-* Dex = 0, fps=4: NEver attacked
-* Dex = 1, fps=4: 8 seconds
-
-* Dex = 1, fps=2: 16 seconds (15183 ticks)
-* Dex = 1, fps=2: 903840 - 888492 = 15384 ticks
-* Dex = 2, fps=2: 1025047 - 1017279 = 7768 ticks
-* Dex = 3, fps=2: 1119036 - 1113778 = 5258 ticks
-* Dex = 3, fps=2: 1196321 - 1191057 = 5264 ticks
-* Dex = 5, fps=2: 1268251 - 1265015 = 3236 ticks
-* Dex = 10, fps=2: 101680 - 99964 = 1716 ticks
-* Dex = 15, fps=2: 161137 - 162341 = 1204 ticks
-* Dex = 15, fps=2: 345291 - 344077 = 1214 ticks
-* Dex = 15, fps=2: 536924 - 535713 =
-* Dex = 20, fps=2: 234732 - 233505 = 1227 ticks
-* Dex = 20, fps=2: 267006 - 265783 = 1223 ticks
