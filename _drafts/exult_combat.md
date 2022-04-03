@@ -403,7 +403,73 @@ yellow region shrinks considerably. Since the bias is symmetrical, if you want t
 it is for a monster to attack your party, you just need to consider the opposite sign graphs (i.e. a
 monster to-hit map at the hardest difficulty is the -3 map, and so on.)
 
+Going back to `attack_target`, we finally reach the part where damage is calculated. The target actor
+has a function called `attacked` which receives who attacked, the weapon used, the ammo and if it's
+an explosion attack. Let's see how this works.
 
+#### Dealing damage
+
+The function `actors.cc:4005 attacked` is quite simple. It does some housekeeping with checks and
+setting oppressors and if the `show_hits` option or `combat_trace` cheat are enabled, prints out the
+appropriate messages. Of interest, it calls `actors.cc:3805 figure_hit_points`, which calculates
+how many hit points to remove *and* how many xp points are received.
+
+First, it checks if the god mode cheat is activated. If so, damage received by party is always 0, and
+damage dealt is always max (127). The combat difficulty comes back again and the bias is now: if 
+the attacked is in the party, it's the bias, if the attacker is in the party, is the negative of the bias,
+and enemies fighting each other isn't affected by bias. The weapon base damage, damage type (normal,
+fire, magic, lightning, ethereal, sonic), weapon powers (sleep, charm, curse, poison, paralyze,
+magebane, unknown and no_damage) and if it explodes if stored, and the same with ammo. The ammo damage
+is added to the ranged weapon damage, the powers and explosion effects are also added. The damage
+type replaces the weapon's only if the ammo has normal damage. Otherwise, the weapon's damage type
+is transferred to the ammo. Then the function calculates how many hp should be lost, then applies
+the checks for weapon powers.
+
+Damage is applied by `actors.cc:2628 apply_damage`. Base damage depends on damage type, bias and the
+attacker's strength. Base damage is a value between 1 and a third of the attacker's strength plus a
+value between 1 and the attack's base damage (weapon + ammo). If it's lightning damage, there's no
+strength bonus, but that's compensated by it ignoring armor.
+
+Bias either removes or adds base damage at 1 damage per difficulty level. It's a bit harder to
+explain by text, so here's a table.
+
+| Difficulty/Damage dealt... | To party | By party |
+|----------------------------|----------|----------|
+| Easier                     | Removes  | Adds     |
+| Harder                     | Adds     | Removes  |
+
+Then, we consider armor. All the npc's worn armor base defense is summed, and added to the npc's
+base armor value (for monsters). If any armor has immunity to the attack's damage type, damage is
+set to zero, (I guess this means even a godmode avatar can't deal damage to enemies immune to it's
+weapon damage) a metal clang is played and the npc `fight_back` (as I mentioned, a way of entering
+the combat state). However, if the attack type of lightning, ethereal, sonic or it's supposed to be
+a 1hit kill attack (glass sword), armor is set to zero. Bias also affects this just like before, 1
+extra/less armor per difficulty. 
+
+| Difficulty/Armor of entity ...   | In party | Outside party |
+|----------------------------------|----------|---------------|
+| Easier                           | Adds     | Removes       |
+| Harder                           | Removes  | Adds          |
+
+After this calculation, the final damage value is calculated. A random number between 1 and the
+total armor is removed from the damage calculated so far. This means there's no difference between
+armor pieces, e.g., plate leggings won't protect you better from rats than a metal helmet. If
+perchance damage was less or equal to zero, plays that a metal clang sound, but flashes the
+attacked's outline in red, and makes it fight back. And finally, we reach the point where health is
+reduced, in `actors.cc:2721 reduce_health`. Don't forget about exp, since that's being carried over 
+for quite a while now.
+
+CONTINUE HERE
+
+It calls `figure_hit_points` and does some
+calculations for `combat_trace`. Moving on to `objs.cc:1500 figure_hit_points`, it gets the weapon
+used to attack, its damage, damage type () and if it
+explodes. If it uses ammo, its damage is added to the current weapon damage, and ammo can also make
+the attack explosive. The minimum damage is 1. Explosions are evaluated just like weapons, with the
+added visual effects (burst arrows count as explosions, for instance). Then, the actor's effective 
+strength is found and the function `.cc:1424 apply_damage` is called.
+
+This function 
 
 
 ### Differences between weapons types and magic
