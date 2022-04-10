@@ -83,6 +83,7 @@ With that out the way, let's start.
     the same is made.
   * The damage dealt is the attack value minus a random number from 1 to the npc's armor stat. 
   * If the npc is vulnerable to that specific damage type, damage (after removing armor) is multiplied by 2.
+  * In godmode, all the party's attacks are instakill, and the party can't receive damage.
 * Health is considered in the following manner:
   * Max health is equal to strength.
   * If health falls to or below 0, the npc is knocked unconscious.
