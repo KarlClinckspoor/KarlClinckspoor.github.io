@@ -33,7 +33,7 @@ With that out the way, let's start.
 
 ## How combat works
 
-![Flowchart](/assets/img/exult_study/Flowchart.drawio.png)
+![Flowchart](/assets/content_posts/2022-04-10-exult_combat/Flowchart.drawio.png)
 
 * Combat is a type of `Schedule`, which controls every action an npc (`Actor`) performs. Other
   schedules include baking, serving food, etc. Aggressive actions do not happen outside of combat (
@@ -149,20 +149,20 @@ How many attacks can be performed given a fixed number of turns. Notice how, for
 number of attacks is the same for relatively wide ranges of dex values. Only for really long battles
 do we see a clear trend favoring higher dex values.
 
-![Number of attacks for n turns](/assets/img/exult_study/Number_of_attacks_for_n_turns.png)
+![Number of attacks for n turns](/assets/content_posts/2022-04-10-exult_combat/Number_of_attacks_for_n_turns.png)
 
 Here we can see how many turns are required to perform a specific number of attacks. Notice the
 logarithmic scale in the y axis. For absurdly low dex values, it takes *ages* to perform an attack.
 Note also how 30 dex is favored, especially for shorter battles.
 
-![Number of turns for n attacks](/assets/img/exult_study/Number_of_turns_for_n_attacks.png)
+![Number of turns for n attacks](/assets/content_posts/2022-04-10-exult_combat/Number_of_turns_for_n_attacks.png)
 
 Last we can see a visualization of attack frequency and the role of the leftover `dex_points` on
 each turn. Here, an attack being performed in a turn is indicated by a peak. The closer the peaks,
 the faster are the attacks coming. Notice how sometimes there's 3 turn gaps, then 2 turn gaps, then
 1 turn gaps and finally at 30 dex, there are no gaps — an attack goes through every other turn.
 
-![Hit frequency visualization for 30 turns](/assets/img/exult_study/hit_frequency_visualization_after_31_turns.webp)
+![Hit frequency visualization for 30 turns](/assets/content_posts/2022-04-10-exult_combat/hit_frequency_visualization_after_31_turns.webp)
 
 You might be wondering how long a turn lasts. To test this, I went to the Trinsic stables and
 modified the Avatar's stats to 1 STR and varying DEX values. Then, I modified the game engine to
@@ -179,14 +179,14 @@ long it takes to hit the target, and this increases at lower dex and lower fps. 
 highest standard deviation I found was 80 ticks, or 0.08 seconds. Imperceptible in normal
 circumstances.
 
-![Hit timings](/assets/img/exult_study/times_lim.png)
+![Hit timings](/assets/content_posts/2022-04-10-exult_combat/times_lim.png)
 
 If we take the timing at 30 dex and consider this 2 turns, we can rescale this plot and compare to
 our previous result. This is what we get. Note how the actual number of turns to attack varies
 between fps. I don't know the exact cause of this, but I guess my assumptions might be too
 simplistic.
 
-![Measured and theoretical number of turns](/assets/img/exult_study/turns.png)
+![Measured and theoretical number of turns](/assets/content_posts/2022-04-10-exult_combat/turns.png)
 
 ### A visualization of hit frequency for two melee enemies and different game difficulties.
 
@@ -239,7 +239,7 @@ uses and another with 2. Good luck surviving 99 casts of some spell. If you have
 equipped, you can open an npc's inventory gump and see the spells. Here's an example of a mage
 located at an island to the south of Trinsic.
 
-![Mage inventory](/assets/img/exult_study/exult_mage_items.PNG)
+![Mage inventory](/assets/content_posts/2022-04-10-exult_combat/exult_mage_items.PNG)
 
 ### Experience and levels
 
@@ -248,9 +248,9 @@ An npc's level is calculated by
 level, you can use `25 * 2 ^ level`. Every level gives the npc 3 training points. I prepared two
 graphs with this info:
 
-![Experience and level](/assets/img/exult_study/Experience.png)
+![Experience and level](/assets/content_posts/2022-04-10-exult_combat/Experience.png)
 
-![Experience and level, log scale](/assets/img/exult_study/Experience_log.png)
+![Experience and level, log scale](/assets/content_posts/2022-04-10-exult_combat/Experience_log.png)
 
 ### How to compile exult myself and make modifications?
 
