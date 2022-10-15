@@ -6,6 +6,10 @@ permalink: /other_projects
 
 # Other projects
 
+## Evolution of a Thesis Film
+
+This has its own page. [Evolution of a Thesis Film](evol_thesis.html)
+
 ## Security
 
 There's this implementation of the "haveibeenpwned.com" API. You supply it with
@@ -13,35 +17,31 @@ a password you use, and it returns, safely, if your password has been
 compromised previously.
 [Link](https://github.com/KarlClinckspoor/PasswordChecker).
 
-## History
+## Cheat on wordle and termooo
 
-I also decided to transform reddit's Askhistorians best questions and answers
-into a book. I stopped after they said they didn't have any interest in it. It's
-very crude and primitive, but I might pick it up at some later date.
-[Link](https://github.com/KarlClinckspoor/AHBook)
+I created a small portable script in Python to suggest words given the hints provided by the 
+attempts made. Silly but fun. [Link](https://github.com/KarlClinckspoor/wordle_helper)
 
-## Data analysis
+## Recipe book
+
+I've been working on modernizing my recipes, with a language-agnostic way of writing them,
+and I plan eventually to create a website that serves these recipes, based on filters (ingredients,
+tags). [Link](https://github.com/KarlClinckspoor/LivroDeReceitas)
+
+## Randomizer
+
+I'm working on learning C# and decided to implement a randomizer for the 1992 DOS game Ultima
+Underworld, one of my all-time favorites. Still in development. [Link](https://github.com/KarlClinckspoor/UnderworldRandomizer)
+
+## How my phone tracked my commute and international trips
 
 I also used my own Android phone's accumulated location data and some Python
 tools to visualize my daily commute and trips in recent years.
 [Link](https://github.com/KarlClinckspoor/Plot-Location-Data)
 
-I did some crude Data analysis on the chemical industries from 2012 to 2014, in
-Brazil. Unfortunately, I couldn't get any more detailed data, so the project
-died early. [Link](https://github.com/KarlClinckspoor/IndustriaQuimica)
-## Programming in general
+## Reddit scraping and reformatting:
 
-There's this C# Project that aims to recreate Ultima Underworld 1 and 2 in
-Unity. It's way above my head, but one of the tools they developed is an
-extractor. The executable itself is now available at the [main
-repo](https://github.com/hankmorgan/UnderworldExporter), but that wasn't the
-case before. I spent some time figuring out how to build it, and had to actually
-change some stuff in the C++ code. I am actually a bit proud of this, since I
-consider C++ to be one of the hardest languages to deal with. The link to the
-extractor is
-[here](https://github.com/KarlClinckspoor/UnderworldExporter/releases/tag/ExtractorBuilt)
-
-## Secrets
-
-In addition, I'm developing some other repos, privately. When they are ready,
-I'll list them here.
+I also decided to transform reddit's Askhistorians best questions and answers
+into a book. I stopped after they said they didn't have any interest in it. It's
+very crude and primitive, but I might pick it up at some later date.
+[Link](https://github.com/KarlClinckspoor/AHBook)
