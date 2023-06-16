@@ -12,7 +12,7 @@ While it is true, there is a 1022 object limit in a level (254 npcs/monsters and
 
 For this tutorial, we'll require:
 
-* [a corrupted save](https://1drv.ms/f/s!As-yStiKjmVHmfMdsA7CR_IvfgrTZw?e=vDvdcI) that triggers the error when you go from Lvl1 to Lvl2 by walking forwards a bit. Copy the contents to the folder `SAVE1` in your ultima underworld 1 installation. Note that this guide requires access to the files of the game, so you'll need to extract `game.gog` with any appropriate tool (such as 7zip), then configure dosbox.
+* [a corrupted save](https://1drv.ms/f/s!As-yStiKjmVHmfMdsA7CR_IvfgrTZw?e=vDvdcI) that triggers the error when you go from Lvl1 to Lvl2 by walking forwards a bit. Copy the contents to the folder `SAVE1` in your ultima underworld 1 installation. Note that this guide requires access to the files of the game, so you'll need to extract `game.gog` with any appropriate tool (such as 7zip), then configure dosbox. ([Direct link to LEV.ARK](/assets/content_posts/2023-06-16-Fixing-UW1-error-object-list/))
 * [A level editor made by krokots](https://www.gog.com/forum/ultima_series/ultima_underworld_editor_release/post1) that has a bunch of useful features, but can't fix the bug itself for us.
 * [A tool to dump all the data in `LEV.ARK` called `uwdump.exe`](https://github.com/vividos/UnderworldAdventures/releases/tag/version-0.10.0-pina-colada). Download the zipped file, extract it somewhere, go into tools and copy `uwdump.exe` to the same directory as `uw.exe`
 * A hex editor, such as [HxD](https://mh-nexus.de/en/hxd/), to edit the files.
