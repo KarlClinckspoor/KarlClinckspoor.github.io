@@ -1,4 +1,14 @@
-# Solving "Underworld Internal Error - Problems in object list" without resorting to nukes
+---
+layout: post
+title: Solving "Underworld Internal Error - Problems in object list" without resorting to nukes
+description: Step by step tutorial on how to solve the object list error
+author: Karl Jan Clinckspoor
+
+tags:
+- games
+- ultima
+- hex editing
+---
 
 ## Introduction
 
@@ -83,31 +93,31 @@ The tile data is `C1 08 20 00`. Each one of this is a byte, so 4 bytes in total 
 
 Fortunately, [`uw-formats.txt`](https://github.com/vividos/UnderworldAdventures/blob/fb4b846f0262073ef879d92fff754dfe9ccc6a5e/uwadv/docs/uw-formats.txt#L1552) describes how to do this. Here's the required except, from section 4.2.
 
-> For each tile there are two Int16 that describe a
-> tile's properties. The map's origin is at the lower left tile, going to the
-> right, each line in turn.
-> 
-> The two Int16 values can be split into bits:
-> 
-> 0000 tile properties / flags:
-> 
->       bits     len  description
->        0- 3    4    tile type (0-9, see below)
->        4- 7    4    floor height
->        8       1    unknown (?? special light feature ??) always 0 in uw1
->        9       1    0, never used in uw1
->       10-13    4    floor texture index (into texture mapping)
->       14       1    when set, no magic is allowed to cast/to be casted upon
->       15       1    door bit (when 1, a door is present)
->                     Tiles with this bit set have a door, but not every tile
->                     with a door has this bit set. Perhaps this bit tells if
->                     an NPC can open the door?
-> 
-> 0002 tile properties 2 / object list link
-> 
->       bits     len  description
->        0- 5    6    wall texture index (into texture mapping)
->        6-15    10   first object in tile (index into object list)
+>    For each tile there are two Int16 that describe a
+>    tile's properties. The map's origin is at the lower left tile, going to the
+>    right, each line in turn.
+>    
+>    The two Int16 values can be split into bits:
+>    
+>    0000 tile properties / flags:
+>    
+>          bits     len  description
+>           0- 3    4    tile type (0-9, see below)
+>           4- 7    4    floor height
+>           8       1    unknown (?? special light feature ??) always 0 in uw1
+>           9       1    0, never used in uw1
+>          10-13    4    floor texture index (into texture mapping)
+>          14       1    when set, no magic is allowed to cast/to be casted upon
+>          15       1    door bit (when 1, a door is present)
+>                        Tiles with this bit set have a door, but not every tile
+>                        with a door has this bit set. Perhaps this bit tells if
+>                        an NPC can open the door?
+>    
+>    0002 tile properties 2 / object list link
+>    
+>          bits     len  description
+>           0- 5    6    wall texture index (into texture mapping)
+>           6-15    10   first object in tile (index into object list)
 
 We are interested in the last 10 bits, which refer to the `first object in tile (index into object list)`. To deal with this in an easier way, let's copy this over to notepad. Select the 4 bytes of the tile in HxD and, on the right, there's a panel called `Data inspector` with a bunch of numbers, `Binary`, `Uint24`, etc. There's one line written `UInt32` with the value `2099393`. Copy this to clipboard, making sure that the `Byte order` at the bottom is `Little endian`[^1], and paste this in the windows calculator, making sure you're in the `DEC` data type.
 
@@ -153,36 +163,36 @@ And yeah, it's the same as what we calculated before!
 
 To modify this, we'll need to check again [`uw-formats.txt`](https://github.com/vividos/UnderworldAdventures/blob/fb4b846f0262073ef879d92fff754dfe9ccc6a5e/uwadv/docs/uw-formats.txt#L1616), section 4.3.
 
-> The "general object info" block looks as following:
-> 
->         bits  size  field      description
-> 
-> 0000 objid / flags
-> 0- 8   9   "item_id"   Object ID (see below)
-> 9-12   4   "flags"     Flags
-> 12   1   "enchant"   Enchantment flag (enchantable objects only)
-> 13   1   "doordir"   Direction flag (doors)
-> 14   1   "invis"     Invisible flag (don't draw this object)
-> 15   1   "is_quant"  Quantity flag (link field is quantity/special)
-> OR
-> 9-15       texture number
-> 
->         Note: some objects don't have flags and use the whole lower byte as a
->         texture number (gravestone, picture, lever, switch, shelf, bridge, ..)
-> 
-> 0002 position
-> 0- 6   7   "zpos"      Object Z position (0-127)
-> 7- 9   3   "heading"   Heading (*45 deg)
-> 10-12   3   "ypos"      Object Y position (0-7)
-> 13-15   3   "xpos"      Object X position (0-7)
-> 
-> 0004 quality / chain
-> 0- 5   6   "quality"   Quality
-> 6-15   10  "next"      Index of next object in chain
-> 
-> 0006 link / special
-> 0- 5   6   "owner"     Owner / special
-> 6-15   10  (*)         Quantity / special link / special property
+>    The "general object info" block looks as following:
+>    
+>            bits  size  field      description
+>    
+>    0000 objid / flags
+>    0- 8   9   "item_id"   Object ID (see below)
+>    9-12   4   "flags"     Flags
+>    12   1   "enchant"   Enchantment flag (enchantable objects only)
+>    13   1   "doordir"   Direction flag (doors)
+>    14   1   "invis"     Invisible flag (don't draw this object)
+>    15   1   "is_quant"  Quantity flag (link field is quantity/special)
+>    OR
+>    9-15       texture number
+>    
+>            Note: some objects don't have flags and use the whole lower byte as a
+>            texture number (gravestone, picture, lever, switch, shelf, bridge, ..)
+>    
+>    0002 position
+>    0- 6   7   "zpos"      Object Z position (0-127)
+>    7- 9   3   "heading"   Heading (*45 deg)
+>    10-12   3   "ypos"      Object Y position (0-7)
+>    13-15   3   "xpos"      Object X position (0-7)
+>    
+>    0004 quality / chain
+>    0- 5   6   "quality"   Quality
+>    6-15   10  "next"      Index of next object in chain
+>    
+>    0006 link / special
+>    0- 5   6   "owner"     Owner / special
+>    6-15   10  (*)         Quantity / special link / special property
  
 We are interested in the `zpos` of the object, its height. This is in position 0002, or the second short, in the initial bytes. We're placing it on floor height, so check the tile height in the editor (it's 12) and multiply this by 8 to get the value we need to set here (96). The reason for this is explained elsewhere in `uw-formats.txt`.
 
